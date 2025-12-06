@@ -13,6 +13,7 @@ from homeassistant.helpers.typing import HomeAssistantType
 
 from .const import DOMAIN, DATA_FLOORPLAN, DEFAULT_DATA_DIR
 from .floorplan_manager import FloorplanManager
+from .providers import BermudaLocationProvider
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,6 +26,8 @@ SERVICE_ADD_BEACON_NODE = "add_beacon_node"
 SERVICE_GET_BEACON_NODES = "get_beacon_nodes"
 SERVICE_UPDATE_BEACON_NODE = "update_beacon_node"
 SERVICE_DELETE_BEACON_NODE = "delete_beacon_node"
+SERVICE_GET_MOVING_ENTITY_COORDINATES = "get_moving_entity_coordinates"
+SERVICE_GET_ALL_MOVING_ENTITY_COORDINATES = "get_all_moving_entity_coordinates"
 
 # Service schemas
 GET_ENTITY_COORDINATES_SCHEMA = vol.Schema(
@@ -162,6 +165,43 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         SERVICE_DELETE_BEACON_NODE,
         handle_delete_beacon_node,
         schema=vol.Schema({vol.Required("node_id"): cv.string}),
+    )
+
+    # Initialize location provider (Bermuda)
+    bermuda_provider = BermudaLocationProvider(hass, manager)
+
+    async def handle_get_moving_entity_coordinates(call: ServiceCall) -> dict[str, Any]:
+        """Handle get_moving_entity_coordinates service call."""
+        entity_id = call.data.get("entity_id")
+        result = await bermuda_provider.get_moving_entity_coordinates(entity_id)
+        if result:
+            return result
+        return {
+            "entity_id": entity_id,
+            "coordinates": None,
+        }
+
+    async def handle_get_all_moving_entity_coordinates(
+        call: ServiceCall,
+    ) -> dict[str, Any]:
+        """Handle get_all_moving_entity_coordinates service call."""
+        coordinates = await bermuda_provider.get_all_moving_entity_coordinates()
+        return {
+            "moving_entities": coordinates,
+            "count": len(coordinates),
+        }
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_GET_MOVING_ENTITY_COORDINATES,
+        handle_get_moving_entity_coordinates,
+        schema=GET_ENTITY_COORDINATES_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_GET_ALL_MOVING_ENTITY_COORDINATES,
+        handle_get_all_moving_entity_coordinates,
     )
 
 

@@ -145,6 +145,41 @@ moving_entities:
 
 These node positions are used by location providers (like the Bermuda integration) to calculate the location of tracked devices (phones, tags, etc.) through BLE signal triangulation.
 
+## Location Providers
+
+### Bermuda Location Provider
+
+The Bermuda location provider converts Bermuda's distance-to-beacon measurements into 3D coordinates using trilateration.
+
+#### How It Works
+
+Bermuda tracks devices by measuring the signal strength (RSSI) from each device to each BLE scanner node, then calculates the distance. The Floorplan integration uses these distances to perform 3D trilateration:
+
+1. **Discovery**: Automatically finds all `distance_to_*` sensors created by Bermuda for tracked devices
+2. **Matching**: Maps sensor names to beacon nodes in your floorplan configuration
+3. **Triangulation**: Uses least-squares 3D trilateration to calculate the most likely position
+4. **Coordinates**: Returns [X, Y, Z] coordinates that can be displayed on your Lovelace card
+
+#### Requirements
+
+- Bermuda integration installed and configured in Home Assistant
+- At least 3 beacon nodes configured in the floorplan with valid coordinates
+- Distance sensors from Bermuda must be available (not unknown/unavailable)
+
+#### Configuration
+
+No special configuration needed! Just:
+1. Set up your beacon nodes as described above
+2. Install and configure the Bermuda integration
+3. Use the location provider services to get coordinates
+
+#### Limitations
+
+- Requires **at least 3 distance measurements** to triangulate (ideally 4+ for better accuracy)
+- Accuracy depends on beacon node placement and Bermuda's distance accuracy
+- Z-coordinate accuracy is limited - primarily useful for X/Y localization within a floor
+- Devices must be in range of at least 3 beacons to calculate position
+
 ### Room Boundaries and Coordinates
 
 All coordinates and dimensions in the floorplan configuration are in **meters**.
@@ -311,31 +346,78 @@ Get coordinates for all static entities at once (useful for the Lovelace card). 
 }
 ```
 
-## Using with the Lovelace Card
+### Moving Entity Services (Bermuda Provider)
 
-When developing the Lovelace card, you can retrieve entity coordinates using the `floorplan.get_all_entity_coordinates` service. This single service call returns:
+#### `floorplan.get_moving_entity_coordinates`
 
-1. **Static Entity Coordinates** - Fixed positions of devices/sensors
-2. **Beacon Node Locations** - Positions of reference points used for localization
+Get calculated coordinates for a device tracked by Bermuda using trilateration.
 
-Example response:
+**Service data:**
+- `entity_id` (string): Home Assistant entity ID of the device being tracked
+
+**Returns:**
 ```json
 {
-  "entity_coordinates": {
-    "light.living_room": [5, 4, 1.8],
-    "sensor.hallway_temperature": [15, 2, 1.5]
+  "entity_id": "device_tracker.john_phone",
+  "coordinates": [7.5, 3.2, 1.1]
+}
+```
+
+Returns `null` for coordinates if:
+- Device is not being tracked by Bermuda
+- Not enough distance sensors are available (need 3+)
+- Distance measurements are unknown/unavailable
+
+#### `floorplan.get_all_moving_entity_coordinates`
+
+Get calculated coordinates for all devices currently being tracked by Bermuda.
+
+**Returns:**
+```json
+{
+  "moving_entities": {
+    "device_tracker.john_phone": [7.5, 3.2, 1.1],
+    "device_tracker.jane_phone": [4.2, 5.8, 1.5],
+    "person.dog": [2.1, 6.5, 0.9]
   },
-  "beacon_nodes": {
-    "D4:5F:4E:A1:23:45": [12, 2.5, 2.0],
-    "A3:2B:1C:F9:87:56": [5, 4, 2.0]
+  "count": 3
+}
+```
+
+The count includes only devices with valid calculated coordinates.
+
+## Using with the Lovelace Card
+
+When developing the Lovelace card, you can retrieve entity coordinates using these services:
+
+1. **`floorplan.get_all_entity_coordinates`** - Returns static entities and beacon nodes
+2. **`floorplan.get_all_moving_entity_coordinates`** - Returns tracked devices (via Bermuda)
+
+Combined response example:
+```json
+{
+  "static": {
+    "entity_coordinates": {
+      "light.living_room": [5, 4, 1.8],
+      "sensor.hallway_temperature": [15, 2, 1.5]
+    },
+    "beacon_nodes": {
+      "D4:5F:4E:A1:23:45": [12, 2.5, 2.0],
+      "A3:2B:1C:F9:87:56": [5, 4, 2.0]
+    }
+  },
+  "moving": {
+    "device_tracker.john_phone": [7.5, 3.2, 1.1],
+    "device_tracker.jane_phone": [4.2, 5.8, 1.5],
+    "person.dog": [2.1, 6.5, 0.9]
   }
 }
 ```
 
-The card can use:
-- **Static entities** to render fixed UI elements (lights, cameras, sensors)
-- **Beacon nodes** as reference points for rendering the localization accuracy/uncertainty
-- **Beacon nodes** as anchors for calculating moving entity positions from location providers
+The card can render:
+- **Static entities** - Fixed UI elements (lights, cameras, sensors)
+- **Beacon nodes** - Reference points showing localization infrastructure
+- **Moving entities** - Tracked devices with dynamically calculated positions from Bermuda
 
 ## Development
 
@@ -343,11 +425,16 @@ The card can use:
 
 ```
 custom_components/floorplan/
-  __init__.py              # Integration setup
+  __init__.py              # Integration setup, service handlers
   config_flow.py           # UI configuration
   const.py                 # Constants
   floorplan_manager.py     # Floorplan data management
+  location_provider.py     # Location provider base class
+  entity.py                # Entity helpers
   manifest.json            # Integration manifest
+  providers/
+    __init__.py            # Providers module
+    bermuda.py             # Bermuda trilateration provider
   translations/
     en.json               # English translations
 ```
