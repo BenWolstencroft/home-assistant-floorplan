@@ -11,7 +11,8 @@ CONF_MOVING_ENTITIES = "moving_entities"
 CONF_PROVIDERS = "providers"
 
 # Provider configuration keys
-CONF_ENABLE_BERMUDA = "enable_bermuda"
+CONF_BERMUDA = "bermuda"
+CONF_ENABLED = "enabled"
 
 # Moving entities config keys
 CONF_MOVING_BEACON_NODES = "beacon_nodes"

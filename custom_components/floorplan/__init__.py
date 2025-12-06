@@ -11,7 +11,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.helpers.typing import HomeAssistantType
 
-from .const import DOMAIN, DATA_FLOORPLAN, DEFAULT_DATA_DIR, CONF_ENABLE_BERMUDA
+from .const import DOMAIN, DATA_FLOORPLAN, DEFAULT_DATA_DIR, CONF_PROVIDERS, CONF_BERMUDA, CONF_ENABLED
 from .floorplan_manager import FloorplanManager
 from .providers import BermudaLocationProvider
 
@@ -168,7 +168,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
 
     # Initialize location provider (Bermuda) if enabled
-    enable_bermuda = entry.data.get(CONF_ENABLE_BERMUDA, True)
+    providers_config = entry.data.get(CONF_PROVIDERS, {})
+    bermuda_config = providers_config.get(CONF_BERMUDA, {})
+    enable_bermuda = bermuda_config.get(CONF_ENABLED, True)
     
     if enable_bermuda:
         bermuda_provider = BermudaLocationProvider(hass, manager)

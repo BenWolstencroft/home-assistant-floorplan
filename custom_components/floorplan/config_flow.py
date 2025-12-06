@@ -8,7 +8,7 @@ from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 
-from .const import DOMAIN, CONF_PROVIDERS, CONF_ENABLE_BERMUDA
+from .const import DOMAIN, CONF_PROVIDERS, CONF_BERMUDA, CONF_ENABLED
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,7 +34,9 @@ class FloorplanConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema({
-                vol.Optional(CONF_ENABLE_BERMUDA, default=True): bool,
+                vol.Optional(CONF_BERMUDA, default={}): vol.Schema({
+                    vol.Optional(CONF_ENABLED, default=True): bool,
+                }),
             }),
             description_placeholders={
                 "setup_hint": "Configure your floorplan via YAML in the Floorplan data directory. "
@@ -49,11 +51,16 @@ class FloorplanConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         # Extract provider settings from YAML config if present
         providers_config = import_data.get(CONF_PROVIDERS, {})
-        enable_bermuda = providers_config.get(CONF_ENABLE_BERMUDA, True)
+        bermuda_config = providers_config.get(CONF_BERMUDA, {})
+        enable_bermuda = bermuda_config.get(CONF_ENABLED, True)
 
         return self.async_create_entry(
             title="Floorplan",
             data={
-                CONF_ENABLE_BERMUDA: enable_bermuda,
+                CONF_PROVIDERS: {
+                    CONF_BERMUDA: {
+                        CONF_ENABLED: enable_bermuda,
+                    },
+                },
             },
         )
