@@ -1,0 +1,87 @@
+# Services for the Floorplan integration
+
+get_entity_coordinates:
+  name: Get entity coordinates
+  description: Get the 3D coordinates of a static entity
+  fields:
+    entity_id:
+      name: Entity ID
+      description: The entity ID to get coordinates for
+      required: true
+      example: "light.living_room"
+      selector:
+        text:
+
+get_all_entity_coordinates:
+  name: Get all entity coordinates
+  description: Get all static entity coordinates and beacon nodes
+
+add_beacon_node:
+  name: Add beacon node
+  description: Add a new beacon node with 3D coordinates
+  fields:
+    node_id:
+      name: Node ID
+      description: The beacon node ID (MAC address)
+      required: true
+      example: "AA:BB:CC:DD:EE:FF"
+      selector:
+        text:
+    coordinates:
+      name: Coordinates
+      description: 3D coordinates [X, Y, Z] in meters
+      required: true
+      example: "[5.0, 4.0, 1.8]"
+      selector:
+        object:
+
+get_beacon_nodes:
+  name: Get beacon nodes
+  description: Get all beacon node coordinates
+
+update_beacon_node:
+  name: Update beacon node
+  description: Update an existing beacon node's coordinates
+  fields:
+    node_id:
+      name: Node ID
+      description: The beacon node ID (MAC address)
+      required: true
+      example: "AA:BB:CC:DD:EE:FF"
+      selector:
+        text:
+    coordinates:
+      name: Coordinates
+      description: 3D coordinates [X, Y, Z] in meters
+      required: true
+      example: "[5.0, 4.0, 1.8]"
+      selector:
+        object:
+
+delete_beacon_node:
+  name: Delete beacon node
+  description: Delete a beacon node
+  fields:
+    node_id:
+      name: Node ID
+      description: The beacon node ID (MAC address)
+      required: true
+      example: "AA:BB:CC:DD:EE:FF"
+      selector:
+        text:
+
+get_moving_entity_coordinates:
+  name: Get moving entity coordinates
+  description: Get the current 3D coordinates of a moving entity tracked by a location provider
+  fields:
+    entity_id:
+      name: Entity ID
+      description: The entity ID to get coordinates for
+      required: true
+      example: "device_tracker.phone"
+      selector:
+        text:
+
+get_all_moving_entity_coordinates:
+  name: Get all moving entity coordinates
+  description: Get all moving entity coordinates from enabled location providers

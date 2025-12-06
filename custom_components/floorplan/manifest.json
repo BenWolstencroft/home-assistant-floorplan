@@ -1,5 +1,4 @@
 {
-  "manifest_version": 1,
   "domain": "floorplan",
   "name": "Floorplan",
   "codeowners": ["@BenWolstencroft"],

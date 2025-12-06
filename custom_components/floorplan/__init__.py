@@ -17,6 +17,9 @@ _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = []
 
+# Config schema - integration can be set up via config entry only
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
 # Service names
 SERVICE_GET_ENTITY_COORDINATES = "get_entity_coordinates"
 SERVICE_GET_ALL_ENTITY_COORDINATES = "get_all_entity_coordinates"
