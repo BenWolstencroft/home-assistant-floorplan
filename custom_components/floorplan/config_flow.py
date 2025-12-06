@@ -74,3 +74,31 @@ class FloorplanConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 },
             },
         )
+
+
+class FloorplanOptionsFlow(config_entries.OptionsFlow):
+    """Handle options flow for Floorplan integration."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize options flow."""
+        self.config_entry = config_entry
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Manage the options."""
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        # Get current configuration
+        current_data = self.config_entry.data
+        providers_config = current_data.get(CONF_PROVIDERS, {})
+        bermuda_config = providers_config.get(CONF_BERMUDA, {})
+        enable_bermuda = bermuda_config.get(CONF_ENABLED, True)
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema({
+                vol.Optional("enable_bermuda", default=enable_bermuda): bool,
+            }),
+        )
