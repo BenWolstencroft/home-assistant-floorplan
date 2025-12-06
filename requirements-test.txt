@@ -1,0 +1,23 @@
+# Testing requirements - minimal dependencies for unit tests
+# These packages allow running tests without full Home Assistant installation
+
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+
+# Code Quality
+pylint>=2.17.0
+black>=23.0.0
+isort>=5.12.0
+flake8>=6.0.0
+mypy>=1.0.0
+
+# Type Stubs
+types-PyYAML>=6.0.0
+types-requests>=2.28.0
+
+# YAML support
+PyYAML>=6.0.0
+
+# Home Assistant dependencies required by components
+voluptuous>=0.12.0

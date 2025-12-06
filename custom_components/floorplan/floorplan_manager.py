@@ -115,6 +115,14 @@ class FloorplanManager:
         """
         return self.floorplan_data.get("floors", {})
 
+    def get_all_floors(self) -> dict[str, Any]:
+        """Get all floors with their heights.
+        
+        Returns:
+            Dictionary of floors with their metadata
+        """
+        return self.floorplan_data.get("floors", {})
+
     def get_rooms(self) -> dict[str, Any]:
         """Get all rooms."""
         return self.floorplan_data.get("rooms", {})
@@ -204,6 +212,14 @@ class FloorplanManager:
         }
 
     def get_static_entities(self) -> dict[str, Any]:
+        """Get all static entities with their coordinates.
+        
+        Returns:
+            Dictionary of entities with their coordinate data
+        """
+        return self.floorplan_data.get("static_entities", {})
+
+    def get_all_static_entities(self) -> dict[str, Any]:
         """Get all static entities with their coordinates.
         
         Returns:
