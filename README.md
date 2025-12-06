@@ -29,9 +29,35 @@ A Home Assistant integration for managing and storing 3D floorplans with room bo
 
 ## Configuration
 
-### Setup
+### Integration Setup
 
-Once installed, configure your floorplan by creating a YAML file.
+1. Go to **Settings → Devices & Services**
+2. Click **Create Integration**
+3. Search for "Floorplan"
+4. Enable/disable location providers as desired:
+   - **Bermuda Location Provider**: Enable BLE-based trilateration for moving entity tracking (default: enabled)
+
+### Provider Configuration
+
+The integration supports pluggable location providers for tracking moving entities:
+
+#### Bermuda Provider (Default)
+
+Automatically enabled by default. To disable:
+
+1. Go to **Settings → Devices & Services → Floorplan**
+2. Click **Edit** on the Floorplan entry
+3. Uncheck "Enable Bermuda Location Provider (BLE Trilateration)"
+4. Save
+
+Or configure via YAML (if using YAML configuration):
+
+```yaml
+# configuration.yaml
+floorplan:
+  providers:
+    enable_bermuda: true  # Set to false to disable Bermuda provider
+```
 
 ### Floorplan Configuration
 

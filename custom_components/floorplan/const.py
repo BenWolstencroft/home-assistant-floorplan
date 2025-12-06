@@ -8,6 +8,10 @@ CONF_ROOMS = "rooms"
 CONF_FLOORS = "floors"
 CONF_STATIC_ENTITIES = "static_entities"
 CONF_MOVING_ENTITIES = "moving_entities"
+CONF_PROVIDERS = "providers"
+
+# Provider configuration keys
+CONF_ENABLE_BERMUDA = "enable_bermuda"
 
 # Moving entities config keys
 CONF_MOVING_BEACON_NODES = "beacon_nodes"

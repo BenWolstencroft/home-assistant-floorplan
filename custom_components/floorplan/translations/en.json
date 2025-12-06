@@ -3,7 +3,10 @@
     "step": {
       "user": {
         "title": "Floorplan Setup",
-        "description": "Configure your floorplan in the data directory"
+        "description": "Configure your floorplan in the data directory. Select which location providers to enable below.",
+        "data": {
+          "enable_bermuda": "Enable Bermuda Location Provider (BLE Trilateration)"
+        }
       }
     }
   }

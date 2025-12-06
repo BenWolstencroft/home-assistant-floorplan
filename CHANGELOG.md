@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Provider configuration UI in config_flow
+- Ability to enable/disable Bermuda location provider
+- Config translations for provider settings
+
 ## [0.2.0] - 2025-12-06
 
 ### Added

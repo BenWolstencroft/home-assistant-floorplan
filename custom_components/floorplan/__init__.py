@@ -11,7 +11,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.helpers.typing import HomeAssistantType
 
-from .const import DOMAIN, DATA_FLOORPLAN, DEFAULT_DATA_DIR
+from .const import DOMAIN, DATA_FLOORPLAN, DEFAULT_DATA_DIR, CONF_ENABLE_BERMUDA
 from .floorplan_manager import FloorplanManager
 from .providers import BermudaLocationProvider
 
@@ -167,42 +167,49 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         schema=vol.Schema({vol.Required("node_id"): cv.string}),
     )
 
-    # Initialize location provider (Bermuda)
-    bermuda_provider = BermudaLocationProvider(hass, manager)
+    # Initialize location provider (Bermuda) if enabled
+    enable_bermuda = entry.data.get(CONF_ENABLE_BERMUDA, True)
+    
+    if enable_bermuda:
+        bermuda_provider = BermudaLocationProvider(hass, manager)
 
-    async def handle_get_moving_entity_coordinates(call: ServiceCall) -> dict[str, Any]:
-        """Handle get_moving_entity_coordinates service call."""
-        entity_id = call.data.get("entity_id")
-        result = await bermuda_provider.get_moving_entity_coordinates(entity_id)
-        if result:
-            return result
-        return {
-            "entity_id": entity_id,
-            "coordinates": None,
-        }
+        async def handle_get_moving_entity_coordinates(call: ServiceCall) -> dict[str, Any]:
+            """Handle get_moving_entity_coordinates service call."""
+            entity_id = call.data.get("entity_id")
+            result = await bermuda_provider.get_moving_entity_coordinates(entity_id)
+            if result:
+                return result
+            return {
+                "entity_id": entity_id,
+                "coordinates": None,
+            }
 
-    async def handle_get_all_moving_entity_coordinates(
-        call: ServiceCall,
-    ) -> dict[str, Any]:
-        """Handle get_all_moving_entity_coordinates service call."""
-        coordinates = await bermuda_provider.get_all_moving_entity_coordinates()
-        return {
-            "moving_entities": coordinates,
-            "count": len(coordinates),
-        }
+        async def handle_get_all_moving_entity_coordinates(
+            call: ServiceCall,
+        ) -> dict[str, Any]:
+            """Handle get_all_moving_entity_coordinates service call."""
+            coordinates = await bermuda_provider.get_all_moving_entity_coordinates()
+            return {
+                "moving_entities": coordinates,
+                "count": len(coordinates),
+            }
 
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_GET_MOVING_ENTITY_COORDINATES,
-        handle_get_moving_entity_coordinates,
-        schema=GET_ENTITY_COORDINATES_SCHEMA,
-    )
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_GET_MOVING_ENTITY_COORDINATES,
+            handle_get_moving_entity_coordinates,
+            schema=GET_ENTITY_COORDINATES_SCHEMA,
+        )
 
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_GET_ALL_MOVING_ENTITY_COORDINATES,
-        handle_get_all_moving_entity_coordinates,
-    )
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_GET_ALL_MOVING_ENTITY_COORDINATES,
+            handle_get_all_moving_entity_coordinates,
+        )
+        
+        _LOGGER.info("Bermuda location provider enabled")
+    else:
+        _LOGGER.info("Bermuda location provider disabled")
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
