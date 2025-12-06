@@ -1,13 +1,14 @@
 """Floorplan data manager."""
 
-import json
 import logging
 from pathlib import Path
 from typing import Any
 
 import yaml
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.floor_registry import FloorRegistry
 
-from .const import FLOORPLAN_CONFIG_FILE, ROOM_NAME, ROOM_AREA, ROOM_BOUNDARIES, ROOM_FLOOR, FLOOR_NAME, FLOOR_Z
+from .const import FLOORPLAN_CONFIG_FILE, ROOM_NAME, ROOM_AREA, ROOM_BOUNDARIES, ROOM_FLOOR, FLOOR_HEIGHT
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -15,7 +16,7 @@ _LOGGER = logging.getLogger(__name__)
 class FloorplanManager:
     """Manages floorplan configuration and data."""
 
-    def __init__(self, hass: Any, data_dir: Path) -> None:
+    def __init__(self, hass: HomeAssistant, data_dir: Path) -> None:
         """Initialize the floorplan manager.
 
         Args:
@@ -54,17 +55,15 @@ class FloorplanManager:
         except Exception as err:
             _LOGGER.error("Error saving floorplan configuration: %s", err)
 
-    def add_floor(self, floor_id: str, name: str, z: float) -> None:
+    def add_floor(self, floor_id: str, height: float) -> None:
         """Add a floor to the floorplan.
 
         Args:
-            floor_id: Unique identifier for the floor
-            name: Display name for the floor
-            z: Z height (elevation) of the floor
+            floor_id: Unique identifier for the floor (from Home Assistant floor registry)
+            height: Height of the floor in meters
         """
         self.floorplan_data["floors"][floor_id] = {
-            FLOOR_NAME: name,
-            FLOOR_Z: z,
+            FLOOR_HEIGHT: height,
         }
 
     def add_room(
@@ -72,7 +71,7 @@ class FloorplanManager:
         room_id: str,
         name: str,
         floor_id: str,
-        boundaries: list[dict[str, float]],
+        boundaries: list[list[float]],
         area_id: str | None = None,
     ) -> None:
         """Add a room to the floorplan.
@@ -81,7 +80,7 @@ class FloorplanManager:
             room_id: Unique identifier for the room
             name: Display name for the room
             floor_id: ID of the floor this room is on
-            boundaries: List of coordinates defining room polygon (X/Y points)
+            boundaries: List of [X, Y] coordinate pairs defining room polygon
             area_id: Optional Home Assistant area ID to associate with this room
         """
         self.floorplan_data["rooms"][room_id] = {
@@ -93,7 +92,11 @@ class FloorplanManager:
             self.floorplan_data["rooms"][room_id][ROOM_AREA] = area_id
 
     def get_floors(self) -> dict[str, Any]:
-        """Get all floors."""
+        """Get all floors with their heights.
+        
+        Returns:
+            Dictionary of floors with their metadata
+        """
         return self.floorplan_data.get("floors", {})
 
     def get_rooms(self) -> dict[str, Any]:

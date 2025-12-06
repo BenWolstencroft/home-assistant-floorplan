@@ -36,62 +36,90 @@ Once installed, configure your floorplan by creating a YAML file.
 
 Create a `floorplan/floorplan.yaml` file in your Home Assistant configuration directory to define your floorplan.
 
+**Note:** Floor IDs are automatically synced from Home Assistant's floor registry. You reference floors by their Home Assistant floor ID.
+
 #### Example Configuration
 
 ```yaml
 floors:
   ground_floor:
-    name: Ground Floor
-    z: 0
-  first_floor:
-    name: First Floor
-    z: 3
+    height: 0          # Height in meters (ground reference)
+  1st_floor:
+    height: 3.2        # Height in meters above ground
+  basement:
+    height: -2.5       # Height in meters below ground
 
 rooms:
+  # Ground Floor Rooms
   living_room:
     name: Living Room
-    floor: ground_floor
-    area: living_room  # Optional: Home Assistant area ID
+    floor: ground_floor  # Home Assistant floor ID
+    area: living_room    # Optional: Home Assistant area ID
     boundaries:
-      - x: 0
-        y: 0
-      - x: 10
-        y: 0
-      - x: 10
-        y: 8
-      - x: 0
-        y: 8
+      - [0, 0]
+      - [10, 0]
+      - [10, 8]
+      - [0, 8]
   
   kitchen:
     name: Kitchen
     floor: ground_floor
     area: kitchen
     boundaries:
-      - x: 10
-        y: 0
-      - x: 15
-        y: 0
-      - x: 15
-        y: 5
-      - x: 10
-        y: 5
+      - [10, 0]
+      - [15, 0]
+      - [15, 5]
+      - [10, 5]
+
+  # First Floor Rooms
+  master_bedroom:
+    name: Master Bedroom
+    floor: 1st_floor     # Home Assistant floor ID
+    area: master_bedroom
+    boundaries:
+      - [0, 0]
+      - [8, 0]
+      - [8, 10]
+      - [0, 10]
+  
+  bathroom:
+    name: Bathroom
+    floor: 1st_floor
+    area: bathroom
+    boundaries:
+      - [8, 0]
+      - [10, 0]
+      - [10, 5]
+      - [8, 5]
 ```
 
-### Room Boundaries
+### Room Boundaries and Coordinates
 
-Boundaries are defined as a list of coordinate points in clockwise or counter-clockwise order. Points define the polygon that represents the room:
+All coordinates and dimensions in the floorplan configuration are in **meters**.
+
+Boundaries are defined as a list of coordinate points in clockwise or counter-clockwise order. Points define the polygon that represents the room. Each point is an array of `[X, Y]` coordinates in meters:
 
 ```yaml
 boundaries:
-  - x: 0
-    y: 0
-  - x: 10
-    y: 0
-  - x: 10
-    y: 8
-  - x: 0
-    y: 8
+  - [0, 0]       # 0m x 0m
+  - [10, 0]      # 10m x 0m
+  - [10, 8]      # 10m x 8m
+  - [0, 8]       # 0m x 8m
 ```
+
+### Floor Heights
+
+Each floor has a physical height in meters stored in the floorplan configuration. This represents the Z-axis elevation of that floor:
+
+- **`height`** (float): Height in meters above/below ground reference
+  - Ground floor: `0` (reference level)
+  - First floor: `3.2` (3.2 meters above ground)
+  - Basement: `-2.5` (2.5 meters below ground)
+
+**To define floor heights:**
+1. Edit `floorplan/floorplan.yaml` in your Home Assistant configuration directory
+2. Add a `floors` section with each floor ID and its `height` value
+3. Restart Home Assistant or reload the floorplan integration
 
 ## Services
 

@@ -14,9 +14,11 @@ ROOM_BOUNDARIES = "boundaries"
 ROOM_FLOOR = "floor"
 
 # Floor configuration keys
-FLOOR_NAME = "name"
-FLOOR_Z = "z"
+FLOOR_HEIGHT = "height"
 
 # Default paths
 DEFAULT_DATA_DIR = "floorplan"
 FLOORPLAN_CONFIG_FILE = "floorplan.yaml"
+
+# Units: all coordinates and dimensions are in meters
+UNIT_METERS = "m"
