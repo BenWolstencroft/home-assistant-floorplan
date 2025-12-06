@@ -26,22 +26,25 @@ class FloorplanConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(DOMAIN)
             self._abort_if_unique_id_configured()
 
+            # Transform user input to match expected data structure
+            data = {
+                CONF_PROVIDERS: {
+                    CONF_BERMUDA: {
+                        CONF_ENABLED: user_input.get("enable_bermuda", True),
+                    },
+                },
+            }
+
             return self.async_create_entry(
                 title="Floorplan",
-                data=user_input,
+                data=data,
             )
 
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema({
-                vol.Optional(CONF_BERMUDA, default={}): vol.Schema({
-                    vol.Optional(CONF_ENABLED, default=True): bool,
-                }),
+                vol.Optional("enable_bermuda", default=True): bool,
             }),
-            description_placeholders={
-                "setup_hint": "Configure your floorplan via YAML in the Floorplan data directory. "
-                "Select which location providers to enable below."
-            },
         )
 
     async def async_step_import(self, import_data: dict[str, Any]) -> FlowResult:
