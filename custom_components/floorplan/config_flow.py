@@ -19,14 +19,22 @@ class FloorplanConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Floorplan."""
 
     VERSION = 1
+    MINOR_VERSION = 1
+
+    @staticmethod
+    def async_get_options_flow(config_entry):
+        """Get the options flow for this handler."""
+        return FloorplanOptionsFlow(config_entry)
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle the initial step."""
+        # Only allow a single instance of this integration
+        await self.async_set_unique_id(DOMAIN)
+        self._abort_if_unique_id_configured()
+
         if user_input is not None:
-            await self.async_set_unique_id(DOMAIN)
-            self._abort_if_unique_id_configured()
 
             # Transform user input to match expected data structure
             data = {
@@ -51,9 +59,6 @@ class FloorplanConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_import(self, import_data: dict[str, Any]) -> FlowResult:
         """Handle import from YAML."""
-        await self.async_set_unique_id(DOMAIN)
-        self._abort_if_unique_id_configured()
-
         # Extract provider settings from YAML config if present
         providers_config = import_data.get(CONF_PROVIDERS, {})
         bermuda_config = providers_config.get(CONF_BERMUDA, {})
