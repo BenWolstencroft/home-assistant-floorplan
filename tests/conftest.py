@@ -23,6 +23,12 @@ def hass():
     hass.services = MagicMock()
     hass.services.async_register = MagicMock()
     hass.services.async_call = MagicMock()
+    
+    # Mock async_add_executor_job to run synchronously for tests
+    async def mock_executor_job(func, *args):
+        return func(*args) if args else func()
+    hass.async_add_executor_job = AsyncMock(side_effect=mock_executor_job)
+    
     return hass
 
 

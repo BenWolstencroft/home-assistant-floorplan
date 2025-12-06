@@ -172,14 +172,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     
     if enable_bermuda:
         try:
-            from .providers.bermuda import BermudaLocationProvider
-        except ImportError as err:
-            _LOGGER.error("Failed to import Bermuda provider: %s", err)
+            # Import at runtime to avoid circular dependencies
+            import importlib
+            providers_module = importlib.import_module(".providers.bermuda", package=__package__)
+            BermudaLocationProvider = providers_module.BermudaLocationProvider
+            bermuda_provider = BermudaLocationProvider(hass, manager)
+        except Exception as err:
+            _LOGGER.error("Failed to import Bermuda provider: %s", err, exc_info=True)
             _LOGGER.warning("Bermuda location provider will be disabled")
             enable_bermuda = False
         
     if enable_bermuda:
-        bermuda_provider = BermudaLocationProvider(hass, manager)
 
         async def handle_get_moving_entity_coordinates(call: ServiceCall) -> dict[str, Any]:
             """Handle get_moving_entity_coordinates service call."""
@@ -218,6 +221,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.info("Bermuda location provider enabled")
     else:
         _LOGGER.info("Bermuda location provider disabled")
+
+    return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
