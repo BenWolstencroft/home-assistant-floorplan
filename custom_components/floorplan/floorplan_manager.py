@@ -8,7 +8,7 @@ import yaml
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.floor_registry import FloorRegistry
 
-from .const import FLOORPLAN_CONFIG_FILE, ROOM_NAME, ROOM_AREA, ROOM_BOUNDARIES, ROOM_FLOOR, FLOOR_HEIGHT
+from .const import FLOORPLAN_CONFIG_FILE, ROOM_NAME, ROOM_AREA, ROOM_BOUNDARIES, ROOM_FLOOR, FLOOR_HEIGHT, ENTITY_ID, ENTITY_COORDINATES
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,6 +29,7 @@ class FloorplanManager:
         self.floorplan_data: dict[str, Any] = {
             "floors": {},
             "rooms": {},
+            "static_entities": {},
         }
 
     async def async_load_floorplan(self) -> None:
@@ -170,3 +171,59 @@ class FloorplanManager:
         ]
         for room_id in rooms_to_remove:
             self.delete_room(room_id)
+
+    def add_static_entity(
+        self, entity_id: str, coordinates: list[float]
+    ) -> None:
+        """Add a static entity with coordinates.
+
+        Args:
+            entity_id: Home Assistant entity ID (e.g., "light.living_room")
+            coordinates: [X, Y, Z] coordinates in meters
+        """
+        if len(coordinates) != 3:
+            raise ValueError("Coordinates must be [X, Y, Z] format")
+        
+        self.floorplan_data["static_entities"][entity_id] = {
+            ENTITY_COORDINATES: coordinates,
+        }
+
+    def get_static_entities(self) -> dict[str, Any]:
+        """Get all static entities with their coordinates.
+        
+        Returns:
+            Dictionary of entities with their coordinate data
+        """
+        return self.floorplan_data.get("static_entities", {})
+
+    def get_static_entity(self, entity_id: str) -> dict[str, Any] | None:
+        """Get a specific static entity by ID.
+
+        Args:
+            entity_id: Home Assistant entity ID
+
+        Returns:
+            Entity data or None if not found
+        """
+        return self.floorplan_data.get("static_entities", {}).get(entity_id)
+
+    def update_static_entity(self, entity_id: str, coordinates: list[float]) -> None:
+        """Update a static entity's coordinates.
+
+        Args:
+            entity_id: Home Assistant entity ID
+            coordinates: [X, Y, Z] coordinates in meters
+        """
+        if len(coordinates) != 3:
+            raise ValueError("Coordinates must be [X, Y, Z] format")
+        
+        if entity_id in self.floorplan_data["static_entities"]:
+            self.floorplan_data["static_entities"][entity_id][ENTITY_COORDINATES] = coordinates
+
+    def delete_static_entity(self, entity_id: str) -> None:
+        """Delete a static entity from the floorplan.
+
+        Args:
+            entity_id: Home Assistant entity ID to delete
+        """
+        self.floorplan_data["static_entities"].pop(entity_id, None)

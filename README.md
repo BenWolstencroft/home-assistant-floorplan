@@ -5,8 +5,9 @@ A Home Assistant integration for managing and storing 3D floorplans with room bo
 ## Features
 
 - Define room boundaries as X/Y coordinates
-- Manage multiple floors with Z height values
+- Manage multiple floors with height values in meters
 - Associate rooms with Home Assistant Areas
+- Position any Home Assistant entity at specific 3D coordinates (lights, sensors, cameras, etc.)
 - Store configuration in YAML format in the custom component's data directory
 
 ## Installation
@@ -93,6 +94,30 @@ rooms:
       - [8, 5]
 ```
 
+### Static Entities
+
+You can position any Home Assistant entity in 3D space within your floorplan. This is useful for displaying sensors, lights, cameras, and other devices at their physical locations in your home.
+
+Add a `static_entities` section to your configuration:
+
+```yaml
+static_entities:
+  light.living_room:
+    coordinates: [5, 4, 1.8]       # [X, Y, Z] in meters
+  sensor.hallway_temperature:
+    coordinates: [15, 2, 1.5]
+  camera.front_door:
+    coordinates: [0, 0, 2.2]
+  light.bedroom_1:
+    coordinates: [3, 8, 0.9]
+```
+
+- **Entity ID**: The full Home Assistant entity ID (e.g., `light.living_room`)
+- **Coordinates**: `[X, Y, Z]` position in meters
+  - `X`: Horizontal position (meters)
+  - `Y`: Depth position (meters)
+  - `Z`: Height above ground (meters)
+
 ### Room Boundaries and Coordinates
 
 All coordinates and dimensions in the floorplan configuration are in **meters**.
@@ -140,6 +165,44 @@ Get a specific room by ID.
 - `room_id` (string): ID of the room
 
 **Returns:** Room data
+
+### `floorplan.get_static_entities`
+
+Get all static entities with their coordinates.
+
+**Returns:** Dictionary of entities with their [X, Y, Z] coordinates
+
+### `floorplan.get_static_entity`
+
+Get a specific static entity by entity ID.
+
+**Service data:**
+- `entity_id` (string): Home Assistant entity ID (e.g., `light.living_room`)
+
+**Returns:** Entity coordinates [X, Y, Z] or null if not found
+
+### `floorplan.add_static_entity`
+
+Add a static entity at specified coordinates.
+
+**Service data:**
+- `entity_id` (string): Home Assistant entity ID
+- `coordinates` (list): [X, Y, Z] coordinates in meters
+
+### `floorplan.update_static_entity`
+
+Update a static entity's coordinates.
+
+**Service data:**
+- `entity_id` (string): Home Assistant entity ID
+- `coordinates` (list): [X, Y, Z] coordinates in meters
+
+### `floorplan.delete_static_entity`
+
+Delete a static entity from the floorplan.
+
+**Service data:**
+- `entity_id` (string): Home Assistant entity ID
 
 ## Development
 
