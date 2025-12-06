@@ -227,3 +227,29 @@ class FloorplanManager:
             entity_id: Home Assistant entity ID to delete
         """
         self.floorplan_data["static_entities"].pop(entity_id, None)
+
+    def get_entity_coordinates(self, entity_id: str) -> list[float] | None:
+        """Get the coordinates for a specific entity.
+
+        Args:
+            entity_id: Home Assistant entity ID
+
+        Returns:
+            [X, Y, Z] coordinates or None if entity not found
+        """
+        entity = self.get_static_entity(entity_id)
+        if entity:
+            return entity.get(ENTITY_COORDINATES)
+        return None
+
+    def get_all_entity_coordinates(self) -> dict[str, list[float]]:
+        """Get coordinates for all static entities.
+
+        Returns:
+            Dictionary mapping entity IDs to [X, Y, Z] coordinates
+        """
+        result = {}
+        for entity_id, entity_data in self.floorplan_data.get("static_entities", {}).items():
+            if ENTITY_COORDINATES in entity_data:
+                result[entity_id] = entity_data[ENTITY_COORDINATES]
+        return result

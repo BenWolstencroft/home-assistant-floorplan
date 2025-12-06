@@ -204,6 +204,41 @@ Delete a static entity from the floorplan.
 **Service data:**
 - `entity_id` (string): Home Assistant entity ID
 
+### `floorplan.get_entity_coordinates`
+
+Get the coordinates for a specific entity (useful for the Lovelace card).
+
+**Service data:**
+- `entity_id` (string): Home Assistant entity ID
+
+**Returns:** 
+```json
+{
+  "entity_id": "light.living_room",
+  "coordinates": [5, 4, 1.8]
+}
+```
+
+### `floorplan.get_all_entity_coordinates`
+
+Get coordinates for all static entities at once (useful for the Lovelace card).
+
+**Returns:**
+```json
+{
+  "entity_coordinates": {
+    "light.living_room": [5, 4, 1.8],
+    "sensor.hallway_temperature": [15, 2, 1.5],
+    "camera.front_door": [0, 0, 2.2]
+  },
+  "count": 3
+}
+```
+
+## Using with the Lovelace Card
+
+When developing the Lovelace card, you can retrieve entity coordinates using the `floorplan.get_all_entity_coordinates` service or by directly querying the manager through the integration's data store. The coordinates are also available as an attribute on the floorplan entity (state: `loaded`, attributes: `entity_coordinates`).
+
 ## Development
 
 ### Directory Structure
