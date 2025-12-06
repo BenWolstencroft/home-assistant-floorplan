@@ -9,13 +9,28 @@ A Home Assistant integration for managing and storing 3D floorplans with room bo
 - Associate rooms with Home Assistant Areas
 - Store configuration in YAML format in the custom component's data directory
 
+## Installation
+
+### Via HACS (Recommended)
+
+1. Go to **HACS → Integrations**
+2. Click "Explore & Download Repositories"
+3. Search for "Floorplan"
+4. Click "Download"
+5. Restart Home Assistant
+6. Go to **Settings → Devices & Services → Create Integration** and select "Floorplan"
+
+### Manual Installation
+
+1. Copy the `custom_components/floorplan` directory to your Home Assistant `custom_components` directory
+2. Restart Home Assistant
+3. Go to **Settings → Devices & Services → Create Integration** and select "Floorplan"
+
 ## Configuration
 
 ### Setup
 
-1. Copy the `custom_components/floorplan` directory to your Home Assistant configuration directory
-2. Restart Home Assistant
-3. Go to **Settings → Devices & Services → Create Integration** and select "Floorplan"
+Once installed, configure your floorplan by creating a YAML file.
 
 ### Floorplan Configuration
 

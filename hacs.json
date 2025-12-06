@@ -1,0 +1,6 @@
+name: Floorplan
+description: A Home Assistant integration for managing and storing 3D floorplans with room boundaries and floor levels.
+homeassistant:
+  min_version: "2024.1.0"
+  categories:
+    - custom_cards
