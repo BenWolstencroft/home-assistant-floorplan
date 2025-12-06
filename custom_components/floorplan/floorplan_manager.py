@@ -7,7 +7,6 @@ from typing import Any
 import yaml
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.floor_registry import FloorRegistry
-from homeassistant.components.bluetooth import async_get_bluetooth_devices
 
 from .const import (
     FLOORPLAN_CONFIG_FILE,
@@ -320,14 +319,11 @@ class FloorplanManager:
         Returns:
             True if device is registered, False otherwise
         """
-        try:
-            devices = async_get_bluetooth_devices(self.hass)
-            # devices is a dictionary where keys are device addresses
-            # Check if the device_id is in the registered devices
-            return device_id in devices
-        except Exception as err:
-            _LOGGER.warning("Error checking Bluetooth devices: %s", err)
-            return False
+        # Bluetooth device validation disabled - API not available in current HA version
+        # This is a basic MAC address format check instead
+        import re
+        mac_pattern = re.compile(r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$')
+        return bool(mac_pattern.match(device_id))
 
     def get_beacon_nodes(self) -> dict[str, Any]:
         """Get all beacon nodes with their coordinates.

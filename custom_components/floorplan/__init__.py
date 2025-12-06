@@ -9,7 +9,6 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall, callback
-from homeassistant.helpers.typing import HomeAssistantType
 
 from .const import DOMAIN, DATA_FLOORPLAN, DEFAULT_DATA_DIR, CONF_PROVIDERS, CONF_BERMUDA, CONF_ENABLED
 from .floorplan_manager import FloorplanManager
