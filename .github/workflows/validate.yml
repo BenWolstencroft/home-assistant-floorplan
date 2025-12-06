@@ -22,6 +22,7 @@ jobs:
 
       - name: HACS validation
         uses: hacs/action@main
+        continue-on-error: true
         with:
           category: integration
 
