@@ -7,6 +7,13 @@ DATA_FLOORPLAN = "floorplan"
 CONF_ROOMS = "rooms"
 CONF_FLOORS = "floors"
 CONF_STATIC_ENTITIES = "static_entities"
+CONF_MOVING_ENTITIES = "moving_entities"
+
+# Moving entities config keys
+CONF_MOVING_BEACON_NODES = "beacon_nodes"
+
+# Beacon node config keys
+BEACON_NODE_COORDINATES = "coordinates"
 
 # Room configuration keys
 ROOM_NAME = "name"

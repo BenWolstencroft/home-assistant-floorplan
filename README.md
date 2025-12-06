@@ -118,6 +118,33 @@ static_entities:
   - `Y`: Depth position (meters)
   - `Z`: Height above ground (meters)
 
+### Moving Entities - Beacon Nodes
+
+Beacon nodes are reference points (like BLE scanners) used to track the position of moving devices in your home through trilateration/triangulation.
+
+Add a `moving_entities` section with `beacon_nodes`:
+
+```yaml
+moving_entities:
+  beacon_nodes:
+    # BLE scanner nodes - must be registered Bluetooth devices in Home Assistant
+    # Find device IDs in Settings → Devices & Services → Bluetooth
+    D4:5F:4E:A1:23:45:  # Device address or ID from Bluetooth registry
+      coordinates: [12, 2.5, 2.0]     # [X, Y, Z] in meters
+    A3:2B:1C:F9:87:56:
+      coordinates: [5, 4, 2.0]
+    F1:E2:D3:C4:B5:A6:
+      coordinates: [4, 8, 2.0]
+```
+
+**Important:** Node IDs must match the Bluetooth device IDs registered in Home Assistant:
+1. Go to **Settings → Devices & Services → Bluetooth**
+2. Identify the BLE scanner devices you want to use for location tracking
+3. Use their device IDs (MAC addresses or device identifiers) as node IDs
+4. Position each scanner node at its physical location in your home
+
+These node positions are used by location providers (like the Bermuda integration) to calculate the location of tracked devices (phones, tags, etc.) through BLE signal triangulation.
+
 ### Room Boundaries and Coordinates
 
 All coordinates and dimensions in the floorplan configuration are in **meters**.
@@ -204,6 +231,49 @@ Delete a static entity from the floorplan.
 **Service data:**
 - `entity_id` (string): Home Assistant entity ID
 
+### Beacon Node Services
+
+#### `floorplan.add_beacon_node`
+
+Register a beacon node (BLE scanner) at a specific location.
+
+**Service data:**
+- `node_id` (string): Bluetooth device ID from Home Assistant's Bluetooth registry (must be registered in Settings → Devices & Services → Bluetooth)
+- `coordinates` (list): [X, Y, Z] coordinates in meters
+
+**Note:** If the device ID is not registered as a Bluetooth device in Home Assistant, this service will fail with an error message.
+
+#### `floorplan.get_beacon_nodes`
+
+Get all registered beacon nodes and their coordinates.
+
+**Returns:**
+```json
+{
+  "nodes": {
+    "D4:5F:4E:A1:23:45": [12, 2.5, 2.0],
+    "A3:2B:1C:F9:87:56": [5, 4, 2.0],
+    "F1:E2:D3:C4:B5:A6": [4, 8, 2.0]
+  },
+  "count": 3
+}
+```
+
+#### `floorplan.update_beacon_node`
+
+Update a beacon node's coordinates.
+
+**Service data:**
+- `node_id` (string): Bluetooth device ID (must be a registered device)
+- `coordinates` (list): [X, Y, Z] coordinates in meters
+
+#### `floorplan.delete_beacon_node`
+
+Remove a beacon node from the configuration.
+
+**Service data:**
+- `node_id` (string): Bluetooth device ID (must be registered in Home Assistant)
+
 ### `floorplan.get_entity_coordinates`
 
 Get the coordinates for a specific entity (useful for the Lovelace card).
@@ -221,7 +291,7 @@ Get the coordinates for a specific entity (useful for the Lovelace card).
 
 ### `floorplan.get_all_entity_coordinates`
 
-Get coordinates for all static entities at once (useful for the Lovelace card).
+Get coordinates for all static entities at once (useful for the Lovelace card). Also includes beacon node locations.
 
 **Returns:**
 ```json
@@ -231,13 +301,41 @@ Get coordinates for all static entities at once (useful for the Lovelace card).
     "sensor.hallway_temperature": [15, 2, 1.5],
     "camera.front_door": [0, 0, 2.2]
   },
-  "count": 3
+  "count": 3,
+  "beacon_nodes": {
+    "D4:5F:4E:A1:23:45": [12, 2.5, 2.0],
+    "A3:2B:1C:F9:87:56": [5, 4, 2.0],
+    "F1:E2:D3:C4:B5:A6": [4, 8, 2.0]
+  },
+  "beacon_nodes_count": 3
 }
 ```
 
 ## Using with the Lovelace Card
 
-When developing the Lovelace card, you can retrieve entity coordinates using the `floorplan.get_all_entity_coordinates` service or by directly querying the manager through the integration's data store. The coordinates are also available as an attribute on the floorplan entity (state: `loaded`, attributes: `entity_coordinates`).
+When developing the Lovelace card, you can retrieve entity coordinates using the `floorplan.get_all_entity_coordinates` service. This single service call returns:
+
+1. **Static Entity Coordinates** - Fixed positions of devices/sensors
+2. **Beacon Node Locations** - Positions of reference points used for localization
+
+Example response:
+```json
+{
+  "entity_coordinates": {
+    "light.living_room": [5, 4, 1.8],
+    "sensor.hallway_temperature": [15, 2, 1.5]
+  },
+  "beacon_nodes": {
+    "D4:5F:4E:A1:23:45": [12, 2.5, 2.0],
+    "A3:2B:1C:F9:87:56": [5, 4, 2.0]
+  }
+}
+```
+
+The card can use:
+- **Static entities** to render fixed UI elements (lights, cameras, sensors)
+- **Beacon nodes** as reference points for rendering the localization accuracy/uncertainty
+- **Beacon nodes** as anchors for calculating moving entity positions from location providers
 
 ## Development
 

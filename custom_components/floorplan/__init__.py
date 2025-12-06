@@ -21,11 +21,22 @@ PLATFORMS: list[Platform] = []
 # Service names
 SERVICE_GET_ENTITY_COORDINATES = "get_entity_coordinates"
 SERVICE_GET_ALL_ENTITY_COORDINATES = "get_all_entity_coordinates"
+SERVICE_ADD_BEACON_NODE = "add_beacon_node"
+SERVICE_GET_BEACON_NODES = "get_beacon_nodes"
+SERVICE_UPDATE_BEACON_NODE = "update_beacon_node"
+SERVICE_DELETE_BEACON_NODE = "delete_beacon_node"
 
 # Service schemas
 GET_ENTITY_COORDINATES_SCHEMA = vol.Schema(
     {
         vol.Required("entity_id"): cv.string,
+    }
+)
+
+BEACON_NODE_SCHEMA = vol.Schema(
+    {
+        vol.Required("node_id"): cv.string,
+        vol.Required("coordinates"): [cv.positive_float],
     }
 )
 
@@ -65,9 +76,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async def handle_get_all_entity_coordinates(call: ServiceCall) -> dict[str, Any]:
         """Handle get_all_entity_coordinates service call."""
         all_coords = manager.get_all_entity_coordinates()
+        beacon_nodes = manager.get_all_beacon_node_coordinates()
+        
         return {
             "entity_coordinates": all_coords,
             "count": len(all_coords),
+            "beacon_nodes": beacon_nodes,
+            "beacon_nodes_count": len(beacon_nodes),
         }
 
     hass.services.async_register(
@@ -83,10 +98,71 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         handle_get_all_entity_coordinates,
     )
 
-    # Set up platforms
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    async def handle_add_beacon_node(call: ServiceCall) -> None:
+        """Handle add_beacon_node service call."""
+        node_id = call.data.get("node_id")
+        coordinates = call.data.get("coordinates")
+        try:
+            manager.add_beacon_node(node_id, coordinates)
+            await manager.async_save_floorplan()
+            _LOGGER.info("Added beacon node: %s at %s", node_id, coordinates)
+        except ValueError as err:
+            _LOGGER.error("Error adding beacon node: %s", err)
+            raise
 
-    return True
+    async def handle_get_beacon_nodes(call: ServiceCall) -> dict[str, Any]:
+        """Handle get_beacon_nodes service call."""
+        nodes = manager.get_all_beacon_node_coordinates()
+        return {
+            "nodes": nodes,
+            "count": len(nodes),
+        }
+
+    async def handle_update_beacon_node(call: ServiceCall) -> None:
+        """Handle update_beacon_node service call."""
+        node_id = call.data.get("node_id")
+        coordinates = call.data.get("coordinates")
+        try:
+            manager.update_beacon_node(node_id, coordinates)
+            await manager.async_save_floorplan()
+            _LOGGER.info("Updated beacon node: %s to %s", node_id, coordinates)
+        except ValueError as err:
+            _LOGGER.error("Error updating beacon node: %s", err)
+            raise
+
+    async def handle_delete_beacon_node(call: ServiceCall) -> None:
+        """Handle delete_beacon_node service call."""
+        node_id = call.data.get("node_id")
+        manager.delete_beacon_node(node_id)
+        await manager.async_save_floorplan()
+        _LOGGER.info("Deleted beacon node: %s", node_id)
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_ADD_BEACON_NODE,
+        handle_add_beacon_node,
+        schema=BEACON_NODE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_GET_BEACON_NODES,
+        handle_get_beacon_nodes,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_UPDATE_BEACON_NODE,
+        handle_update_beacon_node,
+        schema=BEACON_NODE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_DELETE_BEACON_NODE,
+        handle_delete_beacon_node,
+        schema=vol.Schema({vol.Required("node_id"): cv.string}),
+    )
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

@@ -7,8 +7,20 @@ from typing import Any
 import yaml
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.floor_registry import FloorRegistry
+from homeassistant.components.bluetooth import async_get_bluetooth_devices
 
-from .const import FLOORPLAN_CONFIG_FILE, ROOM_NAME, ROOM_AREA, ROOM_BOUNDARIES, ROOM_FLOOR, FLOOR_HEIGHT, ENTITY_ID, ENTITY_COORDINATES
+from .const import (
+    FLOORPLAN_CONFIG_FILE,
+    ROOM_NAME,
+    ROOM_AREA,
+    ROOM_BOUNDARIES,
+    ROOM_FLOOR,
+    FLOOR_HEIGHT,
+    ENTITY_ID,
+    ENTITY_COORDINATES,
+    CONF_MOVING_BEACON_NODES,
+    BEACON_NODE_COORDINATES,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,6 +42,9 @@ class FloorplanManager:
             "floors": {},
             "rooms": {},
             "static_entities": {},
+            "moving_entities": {
+                "beacon_nodes": {},
+            },
         }
 
     async def async_load_floorplan(self) -> None:
@@ -252,4 +267,117 @@ class FloorplanManager:
         for entity_id, entity_data in self.floorplan_data.get("static_entities", {}).items():
             if ENTITY_COORDINATES in entity_data:
                 result[entity_id] = entity_data[ENTITY_COORDINATES]
+        return result
+
+    # Beacon Node Management (provider-agnostic)
+    def add_beacon_node(self, node_id: str, coordinates: list[float]) -> None:
+        """Add a beacon node with coordinates.
+
+        Args:
+            node_id: Bluetooth device ID (must be a registered Bluetooth device in Home Assistant)
+            coordinates: [X, Y, Z] coordinates in meters
+
+        Raises:
+            ValueError: If coordinates are not [X, Y, Z] format or if node_id is not a registered Bluetooth device
+        """
+        if len(coordinates) != 3:
+            raise ValueError("Coordinates must be [X, Y, Z] format")
+        
+        # Validate that the node_id matches a registered Bluetooth device
+        if not self._is_valid_bluetooth_device(node_id):
+            raise ValueError(
+                f"Node ID '{node_id}' is not a registered Bluetooth device in Home Assistant. "
+                "Please ensure the device is registered in Settings → Devices & Services → Bluetooth."
+            )
+        
+        nodes = self.floorplan_data["moving_entities"]["beacon_nodes"]
+        nodes[node_id] = {
+            BEACON_NODE_COORDINATES: coordinates,
+        }
+
+    def _is_valid_bluetooth_device(self, device_id: str) -> bool:
+        """Check if a device ID is a registered Bluetooth device in Home Assistant.
+
+        Args:
+            device_id: Device ID to validate
+
+        Returns:
+            True if device is registered, False otherwise
+        """
+        try:
+            devices = async_get_bluetooth_devices(self.hass)
+            # devices is a dictionary where keys are device addresses
+            # Check if the device_id is in the registered devices
+            return device_id in devices
+        except Exception as err:
+            _LOGGER.warning("Error checking Bluetooth devices: %s", err)
+            return False
+
+    def get_beacon_nodes(self) -> dict[str, Any]:
+        """Get all beacon nodes with their coordinates.
+
+        Returns:
+            Dictionary of beacon nodes with their coordinate data
+        """
+        return self.floorplan_data["moving_entities"].get("beacon_nodes", {})
+
+    def get_beacon_node(self, node_id: str) -> dict[str, Any] | None:
+        """Get a specific beacon node by ID.
+
+        Args:
+            node_id: Bluetooth device ID
+
+        Returns:
+            Node data or None if not found
+        """
+        nodes = self.floorplan_data["moving_entities"].get("beacon_nodes", {})
+        return nodes.get(node_id)
+
+    def update_beacon_node(self, node_id: str, coordinates: list[float]) -> None:
+        """Update a beacon node's coordinates.
+
+        Args:
+            node_id: Bluetooth device ID
+            coordinates: [X, Y, Z] coordinates in meters
+        """
+        if len(coordinates) != 3:
+            raise ValueError("Coordinates must be [X, Y, Z] format")
+        
+        nodes = self.floorplan_data["moving_entities"]["beacon_nodes"]
+        if node_id in nodes:
+            nodes[node_id][BEACON_NODE_COORDINATES] = coordinates
+
+    def delete_beacon_node(self, node_id: str) -> None:
+        """Delete a beacon node from the floorplan.
+
+        Args:
+            node_id: Bluetooth device ID to delete
+        """
+        nodes = self.floorplan_data["moving_entities"]["beacon_nodes"]
+        nodes.pop(node_id, None)
+
+    def get_beacon_node_coordinates(self, node_id: str) -> list[float] | None:
+        """Get the coordinates for a specific beacon node.
+
+        Args:
+            node_id: Bluetooth device ID
+
+        Returns:
+            [X, Y, Z] coordinates or None if not found
+        """
+        node = self.get_beacon_node(node_id)
+        if node:
+            return node.get(BEACON_NODE_COORDINATES)
+        return None
+
+    def get_all_beacon_node_coordinates(self) -> dict[str, list[float]]:
+        """Get coordinates for all beacon nodes.
+
+        Returns:
+            Dictionary mapping node IDs to [X, Y, Z] coordinates
+        """
+        result = {}
+        for node_id, node_data in self.get_beacon_nodes().items():
+            if BEACON_NODE_COORDINATES in node_data:
+                result[node_id] = node_data[BEACON_NODE_COORDINATES]
         return result
