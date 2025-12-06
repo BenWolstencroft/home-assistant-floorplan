@@ -1,0 +1,10 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Floorplan Setup",
+        "description": "Configure your floorplan in the data directory"
+      }
+    }
+  }
+}
