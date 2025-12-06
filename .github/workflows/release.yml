@@ -1,26 +1,52 @@
-name: Release
+name: Release Integration
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
 
 jobs:
-  release:
+  validate:
+    name: Validate Before Release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Hoist version to manifest
-        run: |
-          version=${{ github.event.release.tag_name }}
-          version=${version/v/}
-          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$version\"/" custom_components/floorplan/manifest.json
-
-      - uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: HACS validation
+        uses: hacs/action@main
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          category: integration
+
+      - name: Hassfest validation
+        uses: home-assistant/actions/hassfest@master
+
+  release:
+    name: Create Release
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Update manifest version
+        run: |
+          python3 << EOF
+          import json
+          with open('custom_components/floorplan/manifest.json', 'r') as f:
+            manifest = json.load(f)
+          manifest['version'] = '${{ steps.version.outputs.version }}'
+          with open('custom_components/floorplan/manifest.json', 'w') as f:
+            json.dump(manifest, f, indent=2)
+          EOF
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
           draft: false
           prerelease: false
+          body_path: CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
