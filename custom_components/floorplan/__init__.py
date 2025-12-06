@@ -171,7 +171,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     enable_bermuda = bermuda_config.get(CONF_ENABLED, True)
     
     if enable_bermuda:
-        from .providers import BermudaLocationProvider
+        try:
+            from .providers.bermuda import BermudaLocationProvider
+        except ImportError as err:
+            _LOGGER.error("Failed to import Bermuda provider: %s", err)
+            _LOGGER.warning("Bermuda location provider will be disabled")
+            enable_bermuda = False
+        
+    if enable_bermuda:
         bermuda_provider = BermudaLocationProvider(hass, manager)
 
         async def handle_get_moving_entity_coordinates(call: ServiceCall) -> dict[str, Any]:

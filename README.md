@@ -52,9 +52,9 @@ static_entities:
 
 moving_entities:
   beacon_nodes:
-    D4:5F:4E:A1:23:45:
+    "D4:5F:4E:A1:23:45":
       coordinates: [12, 2.5, 2.0]
-    A3:2B:1C:F9:87:56:
+    "A3:2B:1C:F9:87:56":
       coordinates: [5, 4, 2.0]
 ```
 

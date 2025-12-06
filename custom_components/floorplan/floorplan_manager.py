@@ -50,11 +50,14 @@ class FloorplanManager:
         """Load floorplan configuration from file."""
         if self.config_file.exists():
             try:
-                with open(self.config_file, "r") as f:
-                    data = yaml.safe_load(f)
-                    if data:
-                        self.floorplan_data = data
-                        _LOGGER.info("Loaded floorplan configuration")
+                def _load_yaml():
+                    with open(self.config_file, "r") as f:
+                        return yaml.safe_load(f)
+                
+                data = await self.hass.async_add_executor_job(_load_yaml)
+                if data:
+                    self.floorplan_data = data
+                    _LOGGER.info("Loaded floorplan configuration")
             except Exception as err:
                 _LOGGER.error("Error loading floorplan configuration: %s", err)
         else:
@@ -64,9 +67,12 @@ class FloorplanManager:
     async def async_save_floorplan(self) -> None:
         """Save floorplan configuration to file."""
         try:
-            with open(self.config_file, "w") as f:
-                yaml.dump(self.floorplan_data, f, default_flow_style=False, sort_keys=False)
-                _LOGGER.info("Saved floorplan configuration")
+            def _save_yaml():
+                with open(self.config_file, "w") as f:
+                    yaml.dump(self.floorplan_data, f, default_flow_style=False, sort_keys=False)
+            
+            await self.hass.async_add_executor_job(_save_yaml)
+            _LOGGER.info("Saved floorplan configuration")
         except Exception as err:
             _LOGGER.error("Error saving floorplan configuration: %s", err)
 
