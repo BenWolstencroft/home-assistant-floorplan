@@ -7,10 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2025-12-07
+
 ### Added
+- `get_rooms_by_floor` service for card integration
+- Room data API for frontend visualization
 - Provider configuration UI in config_flow
 - Ability to enable/disable Bermuda location provider
 - Config translations for provider settings
+
+### Fixed
+- Missing services.yaml documentation
+- CONFIG_SCHEMA requirement for Home Assistant validation
 
 ## [0.2.0] - 2025-12-06
 

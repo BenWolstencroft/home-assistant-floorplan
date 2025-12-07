@@ -23,6 +23,7 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 # Service names
 SERVICE_GET_ENTITY_COORDINATES = "get_entity_coordinates"
 SERVICE_GET_ALL_ENTITY_COORDINATES = "get_all_entity_coordinates"
+SERVICE_GET_ROOMS_BY_FLOOR = "get_rooms_by_floor"
 SERVICE_ADD_BEACON_NODE = "add_beacon_node"
 SERVICE_GET_BEACON_NODES = "get_beacon_nodes"
 SERVICE_UPDATE_BEACON_NODE = "update_beacon_node"
@@ -34,6 +35,12 @@ SERVICE_GET_ALL_MOVING_ENTITY_COORDINATES = "get_all_moving_entity_coordinates"
 GET_ENTITY_COORDINATES_SCHEMA = vol.Schema(
     {
         vol.Required("entity_id"): cv.string,
+    }
+)
+
+GET_ROOMS_BY_FLOOR_SCHEMA = vol.Schema(
+    {
+        vol.Required("floor_id"): cv.string,
     }
 )
 
@@ -100,6 +107,35 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         DOMAIN,
         SERVICE_GET_ALL_ENTITY_COORDINATES,
         handle_get_all_entity_coordinates,
+    )
+
+    async def handle_get_rooms_by_floor(call: ServiceCall) -> dict[str, Any]:
+        """Handle get_rooms_by_floor service call."""
+        floor_id = call.data.get("floor_id")
+        rooms_dict = manager.get_rooms_by_floor(floor_id)
+        
+        # Convert to list format for the card
+        rooms_list = [
+            {
+                "id": room_id,
+                "name": room_data.get("name", room_id),
+                "floor": room_data.get("floor"),
+                "area": room_data.get("area"),
+                "boundaries": room_data.get("boundaries", []),
+            }
+            for room_id, room_data in rooms_dict.items()
+        ]
+        
+        return {
+            "rooms": rooms_list,
+            "count": len(rooms_list),
+        }
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_GET_ROOMS_BY_FLOOR,
+        handle_get_rooms_by_floor,
+        schema=GET_ROOMS_BY_FLOOR_SCHEMA,
     )
 
     async def handle_add_beacon_node(call: ServiceCall) -> None:
