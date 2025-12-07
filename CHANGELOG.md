@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.3] - 2025-12-07
+
+### Fixed
+- Added `supports_response=True` to all data-returning services to enable frontend data access
+- Fixed blocking import by using direct import instead of `import_module()` in event loop
+- Services now properly return data to Lovelace cards and frontend integrations
+
 ## [0.2.2] - 2025-12-07
 
 ### Fixed

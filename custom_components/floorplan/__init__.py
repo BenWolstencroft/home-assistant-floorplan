@@ -112,12 +112,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         SERVICE_GET_ENTITY_COORDINATES,
         handle_get_entity_coordinates,
         schema=GET_ENTITY_COORDINATES_SCHEMA,
+        supports_response=True,
     )
 
     hass.services.async_register(
         DOMAIN,
         SERVICE_GET_ALL_ENTITY_COORDINATES,
         handle_get_all_entity_coordinates,
+        supports_response=True,
     )
 
     async def handle_get_rooms_by_floor(call: ServiceCall) -> dict[str, Any]:
@@ -149,6 +151,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         SERVICE_GET_ROOMS_BY_FLOOR,
         handle_get_rooms_by_floor,
         schema=GET_ROOMS_BY_FLOOR_SCHEMA,
+        supports_response=True,
     )
 
     async def handle_add_beacon_node(call: ServiceCall) -> None:
@@ -201,6 +204,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         DOMAIN,
         SERVICE_GET_BEACON_NODES,
         handle_get_beacon_nodes,
+        supports_response=True,
     )
 
     hass.services.async_register(
@@ -225,9 +229,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if enable_bermuda:
         try:
             # Import at runtime to avoid circular dependencies
-            import importlib
-            providers_module = importlib.import_module(".providers.bermuda", package=__package__)
-            BermudaLocationProvider = providers_module.BermudaLocationProvider
+            from .providers.bermuda import BermudaLocationProvider
             bermuda_provider = BermudaLocationProvider(hass, manager)
         except Exception as err:
             _LOGGER.error("Failed to import Bermuda provider: %s", err, exc_info=True)
@@ -262,12 +264,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             SERVICE_GET_MOVING_ENTITY_COORDINATES,
             handle_get_moving_entity_coordinates,
             schema=GET_ENTITY_COORDINATES_SCHEMA,
+            supports_response=True,
         )
 
         hass.services.async_register(
             DOMAIN,
             SERVICE_GET_ALL_MOVING_ENTITY_COORDINATES,
             handle_get_all_moving_entity_coordinates,
+            supports_response=True,
         )
         
         _LOGGER.info("Bermuda location provider enabled")
