@@ -10,7 +10,18 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 
-from .const import DOMAIN, DATA_FLOORPLAN, DEFAULT_DATA_DIR, CONF_PROVIDERS, CONF_BERMUDA, CONF_ENABLED
+from .const import (
+    DOMAIN,
+    DATA_FLOORPLAN,
+    DEFAULT_DATA_DIR,
+    CONF_PROVIDERS,
+    CONF_BERMUDA,
+    CONF_ENABLED,
+    ROOM_NAME,
+    ROOM_FLOOR,
+    ROOM_AREA,
+    ROOM_BOUNDARIES,
+)
 from .floorplan_manager import FloorplanManager
 
 _LOGGER = logging.getLogger(__name__)
@@ -114,14 +125,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         floor_id = call.data.get("floor_id")
         rooms_dict = manager.get_rooms_by_floor(floor_id)
         
+        _LOGGER.debug(f"get_rooms_by_floor called for floor_id: {floor_id}, found {len(rooms_dict)} rooms")
+        
         # Convert to list format for the card
         rooms_list = [
             {
                 "id": room_id,
-                "name": room_data.get("name", room_id),
-                "floor": room_data.get("floor"),
-                "area": room_data.get("area"),
-                "boundaries": room_data.get("boundaries", []),
+                "name": room_data.get(ROOM_NAME, room_id),
+                "floor": room_data.get(ROOM_FLOOR),
+                "area": room_data.get(ROOM_AREA),
+                "boundaries": room_data.get(ROOM_BOUNDARIES, []),
             }
             for room_id, room_data in rooms_dict.items()
         ]

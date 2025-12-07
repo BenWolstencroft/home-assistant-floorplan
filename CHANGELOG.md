@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2025-12-07
+
+### Fixed
+- Import room constants in service handler
+- Added debug logging for get_rooms_by_floor service
+
 ## [0.2.1] - 2025-12-07
 
 ### Added
