@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.4] - 2025-12-08
+
+### Fixed
+- Use `SupportsResponse.ONLY` enum instead of deprecated boolean for service response declarations
+- Services now correctly return data payloads to frontend (was only returning context wrapper)
+
 ## [0.2.3] - 2025-12-07
 
 ### Fixed

@@ -8,7 +8,7 @@ import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant, ServiceCall, callback
+from homeassistant.core import HomeAssistant, ServiceCall, callback, SupportsResponse
 
 from .const import (
     DOMAIN,
@@ -112,14 +112,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         SERVICE_GET_ENTITY_COORDINATES,
         handle_get_entity_coordinates,
         schema=GET_ENTITY_COORDINATES_SCHEMA,
-        supports_response=True,
+        supports_response=SupportsResponse.ONLY,
     )
 
     hass.services.async_register(
         DOMAIN,
         SERVICE_GET_ALL_ENTITY_COORDINATES,
         handle_get_all_entity_coordinates,
-        supports_response=True,
+        supports_response=SupportsResponse.ONLY,
     )
 
     async def handle_get_rooms_by_floor(call: ServiceCall) -> dict[str, Any]:
@@ -151,7 +151,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         SERVICE_GET_ROOMS_BY_FLOOR,
         handle_get_rooms_by_floor,
         schema=GET_ROOMS_BY_FLOOR_SCHEMA,
-        supports_response=True,
+        supports_response=SupportsResponse.ONLY,
     )
 
     async def handle_add_beacon_node(call: ServiceCall) -> None:
@@ -204,7 +204,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         DOMAIN,
         SERVICE_GET_BEACON_NODES,
         handle_get_beacon_nodes,
-        supports_response=True,
+        supports_response=SupportsResponse.ONLY,
     )
 
     hass.services.async_register(
@@ -264,14 +264,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             SERVICE_GET_MOVING_ENTITY_COORDINATES,
             handle_get_moving_entity_coordinates,
             schema=GET_ENTITY_COORDINATES_SCHEMA,
-            supports_response=True,
+            supports_response=SupportsResponse.ONLY,
         )
 
         hass.services.async_register(
             DOMAIN,
             SERVICE_GET_ALL_MOVING_ENTITY_COORDINATES,
             handle_get_all_moving_entity_coordinates,
-            supports_response=True,
+            supports_response=SupportsResponse.ONLY,
         )
         
         _LOGGER.info("Bermuda location provider enabled")
