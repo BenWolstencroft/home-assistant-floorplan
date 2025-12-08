@@ -5,7 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.6] - 2025-12-08
+
+### Changed
+- `get_rooms_by_floor` service now includes `floor_height` (ceiling) and `floor_min_height` (floor below's ceiling) for proper beacon filtering
+- Service calculates floor range by finding the highest floor below the current floor
+
+### Fixed
+- Floor height semantics: `height` represents the ceiling height of each floor, not the floor level
 
 ## [0.2.5] - 2025-12-08
 

@@ -154,8 +154,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         """Handle get_rooms_by_floor service call."""
         floor_id = call.data.get("floor_id")
         rooms_dict = manager.get_rooms_by_floor(floor_id)
+        floor_data = manager.get_floor(floor_id)
         
         _LOGGER.debug(f"get_rooms_by_floor called for floor_id: {floor_id}, found {len(rooms_dict)} rooms")
+        
+        # Get all floors to calculate floor range (for beacon filtering)
+        all_floors = manager.get_all_floors()
+        current_floor_height = floor_data.get(FLOOR_HEIGHT, 0.0) if floor_data else 0.0
+        
+        # Find the previous floor's ceiling height (floor below current floor)
+        # Floors are defined by their ceiling height, so we need to find the highest
+        # floor that has a height less than the current floor
+        previous_floor_height = 0.0
+        for fid, fdata in all_floors.items():
+            if fid != floor_id:
+                fheight = fdata.get(FLOOR_HEIGHT, 0.0)
+                if fheight < current_floor_height and fheight > previous_floor_height:
+                    previous_floor_height = fheight
         
         # Convert to list format for the card
         rooms_list = [
@@ -172,6 +187,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         return {
             "rooms": rooms_list,
             "count": len(rooms_list),
+            "floor_height": current_floor_height,
+            "floor_min_height": previous_floor_height,
         }
 
     hass.services.async_register(
