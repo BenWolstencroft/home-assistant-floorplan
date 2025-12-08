@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-12-08
+
+### Changed
+- **BREAKING:** `get_all_moving_entity_coordinates` now returns entities with metadata structure: `{coordinates: [x,y,z], confidence: float, last_updated: str}`
+- Previously returned simple coordinate arrays, now returns full entity tracking data
+
+### Added
+- Debug logging for Bermuda distance sensor discovery and device grouping
+- Confidence scores for triangulated positions (currently fixed at 0.85, TODO: calculate from triangulation error)
+- ISO 8601 timestamps for last position update
+
+### Fixed
+- Bermuda provider now returns documented API format matching service specification
+
 ## [0.2.9] - 2025-12-08
 
 ### Added

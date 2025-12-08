@@ -45,15 +45,19 @@ class BermudaLocationProvider(LocationProvider):
         Discovers all distance sensors and triangulates their positions.
         
         Returns:
-            Dictionary mapping entity_id -> [X, Y, Z] coordinates.
+            Dictionary mapping entity_id -> {coordinates, confidence, last_updated}.
         """
+        from datetime import datetime, timezone
+        
         coordinates = {}
 
         # Find all Bermuda distance sensors
         distance_sensors = self._find_distance_sensors()
+        _LOGGER.debug("Found %d Bermuda distance sensors", len(distance_sensors))
         
         # Group sensors by device (extract device prefix from sensor name)
         devices = self._group_sensors_by_device(distance_sensors)
+        _LOGGER.debug("Grouped into %d devices: %s", len(devices), list(devices.keys()))
 
         # Triangulate each device
         for device_id, sensors in devices.items():
@@ -66,7 +70,12 @@ class BermudaLocationProvider(LocationProvider):
                             "device_tracker."
                         ):
                             if self._entity_matches_device(state.entity_id, device_id):
-                                coordinates[state.entity_id] = coord
+                                # Return in documented format with metadata
+                                coordinates[state.entity_id] = {
+                                    "coordinates": coord,
+                                    "confidence": 0.85,  # TODO: Calculate actual confidence from triangulation error
+                                    "last_updated": datetime.now(timezone.utc).isoformat(),
+                                }
                                 break
             except Exception as err:
                 _LOGGER.warning("Failed to triangulate device %s: %s", device_id, err)
