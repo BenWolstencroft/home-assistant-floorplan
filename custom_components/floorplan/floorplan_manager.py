@@ -6,7 +6,7 @@ from typing import Any
 
 import yaml
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.floor_registry import FloorRegistry
+from homeassistant.helpers import area_registry as ar, floor_registry as fr
 
 from .const import (
     FLOORPLAN_CONFIG_FILE,
@@ -116,21 +116,70 @@ class FloorplanManager:
         """Get all floors with their heights.
         
         Returns:
-            Dictionary of floors with their metadata
+            Dictionary of floors with their metadata enriched with friendly names
         """
-        return self.floorplan_data.get("floors", {})
+        floors = self.floorplan_data.get("floors", {})
+        result = {}
+        
+        for floor_id, floor_data in floors.items():
+            enriched_floor = dict(floor_data)
+            
+            # Add friendly name from registry if available
+            floor_name = self._get_floor_name_from_registry(floor_id)
+            if floor_name:
+                enriched_floor["name"] = floor_name
+            
+            result[floor_id] = enriched_floor
+        
+        return result
 
     def get_all_floors(self) -> dict[str, Any]:
         """Get all floors with their heights.
         
         Returns:
-            Dictionary of floors with their metadata
+            Dictionary of floors with their metadata enriched with friendly names
         """
-        return self.floorplan_data.get("floors", {})
+        return self.get_floors()
 
     def get_rooms(self) -> dict[str, Any]:
         """Get all rooms."""
         return self.floorplan_data.get("rooms", {})
+
+    def _get_floor_name_from_registry(self, floor_id: str) -> str | None:
+        """Get floor friendly name from Home Assistant floor registry.
+        
+        Args:
+            floor_id: ID of the floor
+            
+        Returns:
+            Floor friendly name or None if not found
+        """
+        try:
+            floor_registry = fr.async_get(self.hass)
+            floor_entry = floor_registry.async_get_floor(floor_id)
+            if floor_entry:
+                return floor_entry.name
+        except Exception as err:
+            _LOGGER.debug("Could not get floor name from registry: %s", err)
+        return None
+    
+    def _get_area_name_from_registry(self, area_id: str) -> str | None:
+        """Get area name from Home Assistant area registry.
+        
+        Args:
+            area_id: ID of the area
+            
+        Returns:
+            Area name or None if not found
+        """
+        try:
+            area_registry = ar.async_get(self.hass)
+            area_entry = area_registry.async_get_area(area_id)
+            if area_entry:
+                return area_entry.name
+        except Exception as err:
+            _LOGGER.debug("Could not get area name from registry: %s", err)
+        return None
 
     def get_rooms_by_floor(self, floor_id: str) -> dict[str, Any]:
         """Get all rooms on a specific floor.
@@ -139,10 +188,28 @@ class FloorplanManager:
             floor_id: ID of the floor
 
         Returns:
-            Dictionary of rooms on the floor
+            Dictionary of rooms on the floor with names enriched from HA registries
         """
         rooms = self.floorplan_data.get("rooms", {})
-        return {rid: r for rid, r in rooms.items() if r.get(ROOM_FLOOR) == floor_id}
+        result = {}
+        
+        for rid, room_data in rooms.items():
+            if room_data.get(ROOM_FLOOR) == floor_id:
+                # Copy room data
+                enriched_room = dict(room_data)
+                
+                # If name is not set, try to get it from area registry
+                if not enriched_room.get(ROOM_NAME):
+                    area_id = enriched_room.get(ROOM_AREA)
+                    if area_id:
+                        area_name = self._get_area_name_from_registry(area_id)
+                        if area_name:
+                            enriched_room[ROOM_NAME] = area_name
+                            _LOGGER.debug(f"Enriched room {rid} with name from area registry: {area_name}")
+                
+                result[rid] = enriched_room
+        
+        return result
 
     def get_room(self, room_id: str) -> dict[str, Any] | None:
         """Get a specific room by ID.
@@ -162,9 +229,21 @@ class FloorplanManager:
             floor_id: ID of the floor
 
         Returns:
-            Floor data or None if not found
+            Floor data enriched with friendly name from registry or None if not found
         """
-        return self.floorplan_data.get("floors", {}).get(floor_id)
+        floor_data = self.floorplan_data.get("floors", {}).get(floor_id)
+        if floor_data:
+            # Copy floor data to avoid modifying original
+            enriched_floor = dict(floor_data)
+            
+            # Add friendly name from registry if available
+            floor_name = self._get_floor_name_from_registry(floor_id)
+            if floor_name:
+                enriched_floor["name"] = floor_name
+                _LOGGER.debug(f"Enriched floor {floor_id} with name from registry: {floor_name}")
+            
+            return enriched_floor
+        return None
 
     def update_room(self, room_id: str, **kwargs: Any) -> None:
         """Update a room's properties.

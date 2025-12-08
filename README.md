@@ -31,20 +31,28 @@ Create `floorplan/floorplan.yaml` in your Home Assistant configuration directory
 ```yaml
 floors:
   ground_floor:
-    height: 0
+    height: 0  # Floor names auto-fetched from HA floor registry
   1st_floor:
     height: 3.2
 
 rooms:
   living_room:
-    name: Living Room
+    name: Living Room  # Optional - uses area name from HA if omitted
     floor: ground_floor
-    area: living_room
+    area: living_room  # Links to Home Assistant area
     boundaries:
       - [0, 0]
       - [10, 0]
       - [10, 8]
       - [0, 8]
+  kitchen:
+    floor: ground_floor
+    area: kitchen  # Room name auto-fetched from area registry
+    boundaries:
+      - [10, 0]
+      - [15, 0]
+      - [15, 5]
+      - [10, 5]
 
 static_entities:
   light.living_room:
@@ -71,6 +79,7 @@ moving_entities:
 - 📍 **Entity Positioning** - Position any Home Assistant entity in 3D space
 - 📡 **Location Tracking** - Track moving entities using Bermuda BLE trilateration
 - 🎨 **Lovelace Card** - Render your floorplan as an interactive 2D view
+- 🔗 **HA Integration** - Auto-fetches floor and room names from Home Assistant registries
 
 ## Documentation
 

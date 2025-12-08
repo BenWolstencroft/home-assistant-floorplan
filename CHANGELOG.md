@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.8] - 2025-12-08
+
+### Added
+- Automatic floor friendly name enrichment from Home Assistant floor registry
+- Automatic room name enrichment from Home Assistant area registry when not specified in config
+- 8 comprehensive tests for registry integration (`test_registry_integration.py`)
+- Graceful error handling when registries are unavailable
+
+### Changed
+- Room names are now optional in config - will use area name from HA if available
+- Floor data now includes friendly "name" field from floor registry
+- `get_rooms_by_floor()`, `get_floor()`, and `get_floors()` automatically enrich data with registry names
+- Original YAML config remains unchanged - enrichment happens at read-time only
+
 ## [0.2.7] - 2025-12-08
 
 ### Added
