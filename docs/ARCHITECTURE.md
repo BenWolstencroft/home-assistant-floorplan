@@ -86,7 +86,7 @@ Floorplan (root)
 **Origin Convention:**
 - Typically placed at corner of home
 - All coordinates relative to this origin
-- Floor height defines Z-offset for that floor
+- Floor height defines **ceiling height** of that floor (used for beacon/entity filtering by floor)
 
 **Examples:**
 ```yaml

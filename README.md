@@ -31,9 +31,9 @@ Create `floorplan/floorplan.yaml` in your Home Assistant configuration directory
 ```yaml
 floors:
   ground_floor:
-    height: 0  # Floor names auto-fetched from HA floor registry
+    height: 2.4  # Ceiling height in meters (friendly names auto-fetched from HA)
   1st_floor:
-    height: 3.2
+    height: 5.2  # First floor ceiling height (2.4m ground + 2.8m floor height)
 
 rooms:
   living_room:
@@ -70,7 +70,8 @@ moving_entities:
 
 **Coordinate Format**: `[X, Y, Z]` all in meters
 - **X/Y**: Horizontal position in your home
-- **Z**: Height above ground
+- **Z**: Absolute height from ground level (not relative to floor)
+- **Floor Heights**: Represent ceiling heights for beacon/entity filtering
 
 ## Features
 

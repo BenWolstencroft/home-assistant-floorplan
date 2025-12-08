@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.9] - 2025-12-08
+
+### Added
+- Bluetooth beacon device friendly name enrichment from Home Assistant device registry
+- New `get_all_beacon_node_data()` method returning beacon coordinates and names
+- `_get_device_name_from_registry()` helper method to fetch device names by MAC address
+
+### Changed
+- `get_all_entity_coordinates` service now returns beacon nodes with structure `{coordinates: [x,y,z], name: "Device Name"}` instead of just coordinates
+- Beacon names automatically fetched from device registry (uses `name_by_user` if set, otherwise `name`)
+- Graceful fallback when device not found in registry
+
 ## [0.2.8] - 2025-12-08
 
 ### Added

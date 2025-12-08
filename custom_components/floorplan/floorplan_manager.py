@@ -6,7 +6,7 @@ from typing import Any
 
 import yaml
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import area_registry as ar, floor_registry as fr
+from homeassistant.helpers import area_registry as ar, floor_registry as fr, device_registry as dr
 
 from .const import (
     FLOORPLAN_CONFIG_FILE,
@@ -179,6 +179,33 @@ class FloorplanManager:
                 return area_entry.name
         except Exception as err:
             _LOGGER.debug("Could not get area name from registry: %s", err)
+        return None
+    
+    def _get_device_name_from_registry(self, device_address: str) -> str | None:
+        """Get device friendly name from Home Assistant device registry.
+        
+        Args:
+            device_address: Bluetooth MAC address (e.g., "AA:BB:CC:DD:EE:FF")
+            
+        Returns:
+            Device friendly name or None if not found
+        """
+        try:
+            device_registry = dr.async_get(self.hass)
+            # Normalize MAC address to uppercase with colons
+            normalized_address = device_address.upper().replace("-", ":")
+            
+            # Search for device by connection (Bluetooth MAC address)
+            for device in device_registry.devices.values():
+                for connection in device.connections:
+                    # connection is a tuple like ("bluetooth", "AA:BB:CC:DD:EE:FF")
+                    if connection[0] == "bluetooth" and connection[1].upper() == normalized_address:
+                        # Return name_by_user if set, otherwise name
+                        return device.name_by_user or device.name
+            
+            _LOGGER.debug("No device found in registry for address: %s", device_address)
+        except Exception as err:
+            _LOGGER.debug("Could not get device name from registry: %s", err)
         return None
 
     def get_rooms_by_floor(self, floor_id: str) -> dict[str, Any]:
@@ -478,4 +505,26 @@ class FloorplanManager:
         for node_id, node_data in self.get_beacon_nodes().items():
             if BEACON_NODE_COORDINATES in node_data:
                 result[node_id] = node_data[BEACON_NODE_COORDINATES]
+        return result
+    
+    def get_all_beacon_node_data(self) -> dict[str, dict[str, Any]]:
+        """Get all beacon node data including coordinates and friendly names.
+        
+        Returns:
+            Dictionary mapping node IDs to data dict with 'coordinates' and 'name' fields
+        """
+        result = {}
+        for node_id, node_data in self.get_beacon_nodes().items():
+            if BEACON_NODE_COORDINATES in node_data:
+                enriched_data = {
+                    "coordinates": node_data[BEACON_NODE_COORDINATES]
+                }
+                
+                # Try to get friendly name from device registry
+                device_name = self._get_device_name_from_registry(node_id)
+                if device_name:
+                    enriched_data["name"] = device_name
+                    _LOGGER.debug(f"Enriched beacon {node_id} with name: {device_name}")
+                
+                result[node_id] = enriched_data
         return result

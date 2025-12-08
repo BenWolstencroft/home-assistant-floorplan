@@ -127,7 +127,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async def handle_get_all_entity_coordinates(call: ServiceCall) -> dict[str, Any]:
         """Handle get_all_entity_coordinates service call."""
         all_coords = manager.get_all_entity_coordinates()
-        beacon_nodes = manager.get_all_beacon_node_coordinates()
+        beacon_nodes = manager.get_all_beacon_node_data()
         
         return {
             "entity_coordinates": all_coords,

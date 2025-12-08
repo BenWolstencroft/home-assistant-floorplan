@@ -61,22 +61,27 @@ Create `floorplan/floorplan.yaml` in your Home Assistant configuration directory
 
 #### Floors
 
-Define the physical floors in your home with their height above/below ground:
+Define the physical floors in your home with their **ceiling heights**:
 
 ```yaml
 floors:
   ground_floor:
-    height: 0           # Ground reference level (meters)
+    height: 2.4         # Ceiling height in meters (ground floor ceiling)
   1st_floor:
-    height: 3.2         # 3.2 meters above ground
+    height: 5.2         # First floor ceiling (2.4m ground + 2.8m floor height)
   2nd_floor:
-    height: 6.4         # 6.4 meters above ground
+    height: 7.6         # Second floor ceiling (5.2m + 2.4m floor height)
   basement:
-    height: -2.5        # 2.5 meters below ground
+    height: -2.5        # Basement ceiling (below ground level)
 ```
 
-- **Floor ID**: Unique identifier (alphanumeric with underscores)
-- **height**: Physical height in meters from ground reference
+**Important Semantics:**
+- **Floor ID**: Unique identifier (alphanumeric with underscores) - friendly names auto-fetched from HA floor registry
+- **height**: **Ceiling height** in meters (not floor level!)
+  - Used for filtering beacons and entities by floor
+  - Ground floor range: 0m to its ceiling height (e.g., 0-2.4m)
+  - First floor range: ground ceiling to first ceiling (e.g., 2.4-5.2m)
+  - Beacons/entities assigned to floor based on their Z coordinate falling in range
 
 #### Rooms
 
@@ -115,9 +120,9 @@ rooms:
 ```
 
 **Properties:**
-- **name**: Display name for the room
+- **name**: Display name for the room (OPTIONAL - if omitted, uses name from Home Assistant area registry)
 - **floor**: Floor ID where this room is located
-- **area**: Optional link to Home Assistant area (for automation/grouping)
+- **area**: Optional link to Home Assistant area (for automation/grouping AND name lookup if name not specified)
 - **boundaries**: List of `[X, Y]` coordinates defining the room polygon
   - Points should form a closed polygon (first and last point should be adjacent)
   - Order (clockwise/counter-clockwise) doesn't matter
@@ -186,12 +191,19 @@ moving_entities:
 2. Look for your BLE scanner devices (typically named with MAC addresses)
 3. The device ID is shown under each device
 
+**Device Friendly Names:**
+- Device friendly names are automatically fetched from Home Assistant device registry
+- Displayed on the floorplan card instead of MAC addresses
+- Uses custom name if set, otherwise device name
+- Falls back to MAC address if device not found in registry
+
 **Positioning Guidelines:**
 - Mount scanners 1.5-2.5m high (typical wall height)
 - Spread them throughout your home for better coverage
 - At least 3 scanners required for 3D trilateration
 - 4+ scanners recommended for better accuracy
 - Form a rough triangle or square around your tracking area
+- Z coordinate should match actual mounting height for accurate tracking
 
 ### Complete Example Configuration
 
@@ -200,9 +212,9 @@ moving_entities:
 
 floors:
   ground_floor:
-    height: 0
+    height: 2.4    # Ground floor ceiling height
   1st_floor:
-    height: 3.2
+    height: 5.2    # First floor ceiling height (2.4m + 2.8m)
 
 rooms:
   # Ground Floor
