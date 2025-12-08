@@ -1,0 +1,65 @@
+# Example Floorplan Configuration
+# Copy this to config/floorplan/floorplan.yaml and customize for your home
+
+# Floors define vertical levels in your home
+# height: Z-coordinate offset in meters (0 for ground floor, 3.0 for first floor, etc.)
+floors:
+  ground_floor:
+    height: 0.0
+  first_floor:
+    height: 3.0
+
+# Rooms define spaces on each floor
+# boundaries: List of [X, Y] coordinates in meters forming a closed polygon
+# All coordinates are from a single origin point (e.g., corner of your home)
+rooms:
+  living_room:
+    name: Living Room
+    floor: ground_floor
+    area: living_area  # Optional: Home Assistant area ID
+    boundaries:
+      - [0, 0]      # Bottom-left corner
+      - [5, 0]      # Bottom-right corner
+      - [5, 4]      # Top-right corner
+      - [0, 4]      # Top-left corner
+  
+  kitchen:
+    name: Kitchen
+    floor: ground_floor
+    boundaries:
+      - [5, 0]
+      - [9, 0]
+      - [9, 4]
+      - [5, 4]
+  
+  bedroom:
+    name: Bedroom
+    floor: first_floor
+    boundaries:
+      - [0, 0]
+      - [4, 0]
+      - [4, 3.5]
+      - [0, 3.5]
+
+# Static entities with fixed 3D coordinates [X, Y, Z] in meters
+static_entities:
+  light.living_room:
+    coordinates: [2.5, 2, 2.5]  # Center of living room, 2.5m height
+  light.kitchen:
+    coordinates: [7, 2, 2.5]
+  sensor.temperature_bedroom:
+    coordinates: [2, 1.5, 4.2]  # On first floor (3m) + 1.2m height
+
+# Moving entities configuration (for location tracking)
+moving_entities:
+  # Beacon nodes for BLE trilateration (Bermuda integration)
+  # MAC address format: AA:BB:CC:DD:EE:FF
+  beacon_nodes:
+    AA:BB:CC:DD:EE:01:
+      coordinates: [0, 0, 2]     # Corner 1, 2m height
+    AA:BB:CC:DD:EE:02:
+      coordinates: [9, 0, 2]     # Corner 2, 2m height
+    AA:BB:CC:DD:EE:03:
+      coordinates: [9, 4, 2]     # Corner 3, 2m height
+    AA:BB:CC:DD:EE:04:
+      coordinates: [0, 4, 2]     # Corner 4, 2m height

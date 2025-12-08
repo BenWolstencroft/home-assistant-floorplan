@@ -24,7 +24,9 @@ A flexible 3D floorplan system for Home Assistant with room management, entity p
 
 ### Basic Configuration
 
-Create `floorplan/floorplan.yaml` in your Home Assistant configuration directory:
+Create `floorplan/floorplan.yaml` in your Home Assistant configuration directory (see `floorplan.yaml.example` for a complete example):
+
+> **Auto-reload enabled**: The integration automatically watches for changes to `floorplan.yaml` and reloads every 2 seconds. You can also manually reload using the `floorplan.reload` service.
 
 ```yaml
 floors:

@@ -41,6 +41,7 @@ SERVICE_UPDATE_BEACON_NODE = "update_beacon_node"
 SERVICE_DELETE_BEACON_NODE = "delete_beacon_node"
 SERVICE_GET_MOVING_ENTITY_COORDINATES = "get_moving_entity_coordinates"
 SERVICE_GET_ALL_MOVING_ENTITY_COORDINATES = "get_all_moving_entity_coordinates"
+SERVICE_RELOAD = "reload"
 
 # Service schemas
 GET_ENTITY_COORDINATES_SCHEMA = vol.Schema(
@@ -81,9 +82,36 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     manager = FloorplanManager(hass, data_dir)
     await manager.async_load_floorplan()
 
+    # Store manager in hass.data
     hass.data[DOMAIN][entry.entry_id] = {
         "manager": manager,
     }
+
+    # Set up file watcher for automatic reload
+    async def watch_floorplan_file():
+        """Watch floorplan.yaml for changes and reload automatically."""
+        import asyncio
+        
+        config_file = manager.config_file
+        last_mtime = None
+        
+        while True:
+            try:
+                await asyncio.sleep(2)  # Check every 2 seconds
+                if config_file.exists():
+                    current_mtime = config_file.stat().st_mtime
+                    if last_mtime is not None and current_mtime != last_mtime:
+                        _LOGGER.info("Detected change in floorplan.yaml, reloading...")
+                        await manager.async_load_floorplan()
+                        _LOGGER.info("Floorplan configuration reloaded successfully")
+                    last_mtime = current_mtime
+            except Exception as err:
+                _LOGGER.error("Error watching floorplan file: %s", err)
+    
+    # Start file watcher task
+    hass.data[DOMAIN][entry.entry_id]["watcher_task"] = hass.async_create_task(
+        watch_floorplan_file()
+    )
 
     # Register services
     async def handle_get_entity_coordinates(call: ServiceCall) -> dict[str, Any]:
@@ -278,6 +306,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     else:
         _LOGGER.info("Bermuda location provider disabled")
 
+    # Register reload service
+    async def handle_reload(call: ServiceCall) -> None:
+        """Handle reload service call to manually reload floorplan.yaml."""
+        _LOGGER.info("Manual reload requested")
+        await manager.async_load_floorplan()
+        _LOGGER.info("Floorplan configuration reloaded successfully")
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_RELOAD,
+        handle_reload,
+    )
+
     return True
 
 
@@ -286,6 +327,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     if unload_ok:
+        # Cancel file watcher task
+        entry_data = hass.data[DOMAIN].get(entry.entry_id, {})
+        if "watcher_task" in entry_data:
+            entry_data["watcher_task"].cancel()
+        
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok

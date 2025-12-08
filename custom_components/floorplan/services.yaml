@@ -97,3 +97,7 @@ get_moving_entity_coordinates:
 get_all_moving_entity_coordinates:
   name: Get all moving entity coordinates
   description: Get all moving entity coordinates from enabled location providers
+
+reload:
+  name: Reload
+  description: Reload the floorplan configuration from floorplan.yaml

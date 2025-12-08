@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.5] - 2025-12-08
+
+### Added
+- Automatic file watching for `floorplan.yaml` changes with 2-second polling interval
+- `floorplan.reload` service to manually reload configuration
+- Configuration automatically reloads when file is modified (no restart needed)
+- Example `floorplan.yaml.example` with complete configuration reference
+
+### Changed
+- File watcher task properly cleaned up on integration unload
+
 ## [0.2.4] - 2025-12-08
 
 ### Fixed
