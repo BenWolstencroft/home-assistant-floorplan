@@ -5,7 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.6] - 2025-12-08
+## [0.2.7] - 2025-12-08
+
+### Added
+- Integration import validation tests to prevent missing constant imports (`test_init.py`)
+- Floor range calculation logic tests with multi-floor scenarios
+- Beacon filtering tests with boundary condition validation (tests beacons at exact ceiling heights)
 
 ### Changed
 - `get_rooms_by_floor` service now includes `floor_height` (ceiling) and `floor_min_height` (floor below's ceiling) for proper beacon filtering
@@ -13,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Floor height semantics: `height` represents the ceiling height of each floor, not the floor level
+- Missing `FLOOR_HEIGHT` import in `__init__.py` causing runtime errors
 
 ## [0.2.5] - 2025-12-08
 

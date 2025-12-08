@@ -21,6 +21,7 @@ from .const import (
     ROOM_FLOOR,
     ROOM_AREA,
     ROOM_BOUNDARIES,
+    FLOOR_HEIGHT,
 )
 from .floorplan_manager import FloorplanManager
 
