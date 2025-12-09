@@ -88,7 +88,19 @@ class FloorplanOptionsFlow(config_entries.OptionsFlow):
     ) -> FlowResult:
         """Manage the options."""
         if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+            # Update the config entry data with new options
+            new_data = {
+                CONF_PROVIDERS: {
+                    CONF_BERMUDA: {
+                        CONF_ENABLED: user_input.get("enable_bermuda", True),
+                    },
+                },
+            }
+            self.hass.config_entries.async_update_entry(
+                self.config_entry,
+                data=new_data,
+            )
+            return self.async_create_entry(title="", data={})
 
         # Get current configuration
         current_data = self.config_entry.data
