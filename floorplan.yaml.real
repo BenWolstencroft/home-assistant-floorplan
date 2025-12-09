@@ -1,0 +1,232 @@
+floors:
+  ground:
+    height: 2.4
+  first:
+    height: 5.2
+  second:
+    height: 7.6
+
+rooms:
+  living_room:
+    name: Living Room
+    floor: ground
+    area: living_room
+    boundaries:
+      - [0, 0]
+      - [0, 5.93]
+      - [4.06, 5.93]
+      - [4.06, 0]
+  dining_room:
+    name: Dining Room
+    floor: ground
+    area: dining_room
+    boundaries:
+      - [0, 5.93]
+      - [0, 10.21]
+      - [3.63, 10.21]
+      - [3.63, 5.93]
+  entrance:
+    name: Entrance
+    floor: ground
+    area: entrance
+    boundaries:
+      - [4.06, 0]
+      - [4.06, 4.18]
+      - [6.22, 4.18]
+      - [6.22, 0]
+  study:
+    name: Study
+    floor: ground
+    area: study
+    boundaries:
+      - [6.22, 0]
+      - [6.22, 2.46]
+      - [9.79, 2.46]
+      - [9.79, 0]
+  wc:
+    name: WC
+    floor: ground
+    area: wc
+    boundaries:
+      - [6.22, 2.46]
+      - [6.22, 4.19]
+      - [7.78, 4.19]
+      - [7.78, 2.46]
+  utiity_room:
+    name: Utility
+    floor: ground
+    area: utility_room
+    boundaries:
+      - [7.78, 2.46]
+      - [7.78, 5.06]
+      - [9.79, 5.06]
+      - [9.79, 2.46]
+  kitchen:
+    name: Kitchen
+    floor: ground
+    area: kitchen
+    boundaries:
+      - [3.63, 5.93]
+      - [3.63, 11.14]
+      - [9.79, 11.14]
+      - [9.79, 4.9]
+      - [6.22, 4.9]
+      - [6.22, 4.18]
+      - [4.06, 4.18]
+      - [4.06, 5.93]
+
+  primary_bedroom:
+    name: Primary Bedroom
+    floor: first
+    area: primary_bedroom
+    boundaries:
+      - [0, 0]
+      - [0, 6.78]
+      - [2.9, 6.78]
+      - [2.9, 4.9]
+      - [4.06, 4.9]
+      - [4.06, 0]
+  primary_ensuite:
+    name: Ensuite
+    floor: first
+    area: primary_ensuite
+    boundaries:
+      - [0, 6.78]
+      - [0, 8.68]
+      - [2.9, 8.68]
+      - [2.9, 6.78]
+  first_floor_stairway:
+    name: Stairway
+    floor: first
+    area: first_floor_stairway
+    boundaries:
+      - [4.06, 0]
+      - [4.06, 4.90]
+      - [6.22, 4.90]
+      - [6.22, 0]
+  secondary_bedroom:
+    name: Secondary Bedroom
+    floor: first
+    area: secondary_bedroom
+    boundaries:
+      - [6.22, 0]
+      - [6.22, 4.3]
+      - [7.39, 4.3]
+      - [7.39, 5.94]
+      - [9.79, 5.94]
+      - [9.79, 0]
+  shared_ensuite:
+    name: Ensuite
+    floor: first
+    area: shared_ensuite
+    boundaries:
+      - [7.39, 5.94]
+      - [7.39, 8.68]
+      - [9.79, 8.68]
+      - [9.79, 5.94]
+  third_bedroom:
+    name: Third Bedroom
+    floor: first
+    area: third_bedroom
+    boundaries:
+      - [2.9, 4.9]
+      - [2.9, 8.68]
+      - [7.39, 8.68]
+      - [7.39, 4.3]
+      - [6.22, 4.3]
+      - [6.22, 4.90]
+
+  fourth_bedroom:
+    name: Fourth Bedroom
+    floor: second
+    area: fourth_bedroom
+    boundaries:
+      - [0, 0.66]
+      - [0, 4.29]
+      - [4.06, 4.29]
+      - [4.06, 0.66]
+      - [2.365, 0.66]
+      - [2.365, 0.38]
+      - [1.495, 0.38]
+      - [1.495, 0.66]
+  second_floor_stairway:
+    name: Stairway
+    floor: second
+    area: second_floor_stairway
+    boundaries:
+      - [4.06, 0.66]
+      - [4.06, 5.54]
+      - [6.22, 5.54]
+      - [6.22, 0.66]
+      - [5.33, 0.66]
+      - [5.33, 0.36]
+      - [4.46, 0.36]
+      - [4.46, 0.66]
+  lounge:
+    name: Lounge
+    floor: second
+    area: lounge
+    boundaries:
+      - [6.22, 0.66]
+      - [6.22, 5.54]
+      - [9.79, 5.54]
+      - [9.79, 0.66]
+      - [8.315, 0.66]
+      - [8.315, 0.36]
+      - [7.445, 0.36]
+      - [7.445, 0.66]
+  playroom:
+    name: Playroom
+    floor: second
+    area: play_room
+    boundaries:
+      - [6.22, 5.54]
+      - [6.22, 8.02]
+      - [9.79, 8.02]
+      - [9.79, 5.54]
+  family_bathroom:
+    name: Family Bathroom
+    floor: second
+    area: family_bathroom
+    boundaries:
+      - [4.06, 5.54]
+      - [4.06, 8.02]
+      - [6.22, 8.02]
+      - [6.22, 5.54]
+  office:
+    name: Office
+    floor: second
+    area: office
+    boundaries:
+      - [0, 4.29]
+      - [0, 8.02]
+      - [4.06, 8.02]
+      - [4.06, 4.29]
+
+static_entities: {}
+moving_entities:
+  beacon_nodes:
+    "F8:B3:B7:21:B1:32": # living_room
+      coordinates: [0.15, 0.15, 0.6]
+    "A0:B7:65:15:3C:42": # kitchen
+      coordinates: [7, 9.5, 0.6]
+    "A0:B7:65:16:34:7E": # secondary_bedroom
+      coordinates: [9.49, 1, 2.8]
+    "F8:B3:B7:20:F0:6E": # test_bed
+      coordinates: [1, 7.82, 5.6]
+    "F8:B3:B7:21:C4:D2": # lounge
+      coordinates: [9.59, 4.54, 5.6]
+    "88:A2:9E:31:E5:74": # ha
+      coordinates: [4.46, 3.09, 5.3]
+# static_entities:
+#   light.living_room:
+#     coordinates: [5, 4, 1.8]
+#   camera.front_door:
+#     coordinates: [0, 0, 2.2]
+
+# moving_entities:
+#   beacon_nodes:
+#     D4:5F:4E:A1:23:45:
+#       coordinates: [12, 2.5, 2.0]
+#     A3:2B:1C:F9:87:56:
+#       coordinates: [5, 4, 2.0]

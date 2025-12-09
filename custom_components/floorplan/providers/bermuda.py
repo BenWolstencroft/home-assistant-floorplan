@@ -232,9 +232,38 @@ class BermudaLocationProvider(LocationProvider):
             _LOGGER.debug(f"Insufficient beacons matched ({len(distances)}/3 required)")
             return None
 
+        # Filter out outlier distances that are geometrically impossible
+        # Calculate max theoretical distance between any two beacons
+        beacon_positions = list(node_positions.values())
+        max_beacon_separation = 0
+        for i in range(len(beacon_positions)):
+            for j in range(i + 1, len(beacon_positions)):
+                sep = math.sqrt(
+                    sum((beacon_positions[i][k] - beacon_positions[j][k]) ** 2 for k in range(3))
+                )
+                max_beacon_separation = max(max_beacon_separation, sep)
+        
+        # Filter distances: any distance > 2x max beacon separation is likely bad
+        outlier_threshold = max_beacon_separation * 2
+        filtered_distances = {}
+        filtered_positions = {}
+        
+        for node_id in list(distances.keys()):
+            if distances[node_id] > outlier_threshold:
+                _LOGGER.debug(f"    Filtering outlier: {node_id} distance {distances[node_id]:.2f}m > threshold {outlier_threshold:.2f}m")
+            else:
+                filtered_distances[node_id] = distances[node_id]
+                filtered_positions[node_id] = node_positions[node_id]
+        
+        if len(filtered_distances) < 3:
+            _LOGGER.debug(f"Insufficient beacons after filtering ({len(filtered_distances)}/3 required)")
+            return None
+        
+        _LOGGER.debug(f"Using {len(filtered_distances)} beacons after outlier filtering")
+
         # Perform 3D trilateration
         try:
-            result = self._trilaterate_3d(node_positions, distances)
+            result = self._trilaterate_3d(filtered_positions, filtered_distances)
             return result
         except Exception as err:
             # Only log actual errors, not expected calculation issues

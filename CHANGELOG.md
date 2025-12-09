@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.6] - 2025-12-09
+
+### Added
+- **Outlier distance filtering** to improve trilateration accuracy
+- Automatically calculates maximum theoretical distance between beacon nodes
+- Filters out distance measurements > 2x max beacon separation as outliers
+- Prevents bad distance readings (interference, out-of-range) from skewing position calculations
+- Logs which beacons are filtered and why
+
+### Technical Details
+- Example: If beacons are max 15m apart, any 30m+ distance reading is filtered
+- Requires 3+ valid beacons after filtering to proceed with trilateration
+- Significantly improves accuracy when some beacons have poor signal quality
+- Prevents calculated positions from appearing outside floorplan bounds
+
 ## [0.3.5] - 2025-12-09
 
 ### Fixed
