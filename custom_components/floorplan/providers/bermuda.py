@@ -182,34 +182,48 @@ class BermudaLocationProvider(LocationProvider):
         """
         beacon_nodes = self.manager.get_beacon_nodes()
         if not beacon_nodes:
+            _LOGGER.debug("No beacon nodes configured")
             return None
+
+        _LOGGER.debug(f"Available beacon nodes: {list(beacon_nodes.keys())}")
+        _LOGGER.debug(f"Processing {len(sensors)} sensors")
 
         # Build distance measurements and beacon node positions
         distances = {}
         node_positions = {}
 
         for sensor in sensors:
+            _LOGGER.debug(f"  Sensor: {sensor.entity_id} = {sensor.state}m")
+            
             # Extract node name from sensor
             node_name = self._extract_node_name_from_sensor(sensor.entity_id)
             if not node_name:
+                _LOGGER.debug(f"    Could not extract node name from {sensor.entity_id}")
                 continue
+            
+            _LOGGER.debug(f"    Extracted node name: {node_name}")
 
             # Find matching beacon node
             matching_node = self._find_beacon_node_by_name(node_name, beacon_nodes)
             if not matching_node:
-                # Silently skip - this is common when sensors exist for beacons not in config
+                _LOGGER.debug(f"    No matching beacon node found for '{node_name}'")
                 continue
+            
+            node_id, coordinates = matching_node
+            _LOGGER.debug(f"    Matched to beacon node: {node_id} at {coordinates}")
 
             try:
                 distance = float(sensor.state)
-                node_id, coordinates = matching_node
                 distances[node_id] = distance
                 node_positions[node_id] = coordinates
             except (ValueError, TypeError):
+                _LOGGER.debug(f"    Could not parse distance value: {sensor.state}")
                 pass
 
+        _LOGGER.debug(f"Matched {len(distances)} beacons: {list(distances.keys())}")
+        
         if len(distances) < 3:
-            # Silently return None - insufficient data is expected when device is out of range
+            _LOGGER.debug(f"Insufficient beacons matched ({len(distances)}/3 required)")
             return None
 
         # Perform 3D trilateration

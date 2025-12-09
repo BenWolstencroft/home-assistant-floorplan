@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.3] - 2025-12-09
+
+### Fixed
+- **Config flow options** now properly updates integration configuration without 500 errors
+- Options flow correctly transforms user input into nested provider configuration structure
+- Config entry data properly updated using `async_update_entry()` method
+
+### Added
+- **Enhanced Bermuda triangulation debugging** with detailed sensor processing logs
+- Shows each sensor being processed with distance values
+- Logs node name extraction from sensor entity IDs
+- Shows beacon node matching attempts and results
+- Reports why triangulation fails (insufficient beacons, matching failures, etc.)
+- Lists all available beacon nodes and matched beacons for troubleshooting
+
 ## [0.3.2] - 2025-12-09
 
 ### Changed
