@@ -56,29 +56,38 @@ class BermudaLocationProvider(LocationProvider):
         
         # Group sensors by device (extract device prefix from sensor name)
         devices = self._group_sensors_by_device(distance_sensors)
+        _LOGGER.debug(f"Found {len(distance_sensors)} Bermuda distance sensors, grouped into {len(devices)} devices: {list(devices.keys())}")
 
         # Triangulate each device
         for device_id, sensors in devices.items():
             try:
                 coord = await self._triangulate_from_sensors(sensors)
                 if coord:
+                    _LOGGER.debug(f"Triangulation successful for {device_id}: {coord}")
                     # Map back to original entity IDs if they exist in HA
+                    matched = False
                     for state in self.hass.states.async_all():
                         if state.entity_id.startswith("person.") or state.entity_id.startswith(
                             "device_tracker."
                         ):
                             if self._entity_matches_device(state.entity_id, device_id):
+                                _LOGGER.debug(f"Matched device {device_id} to entity {state.entity_id}")
                                 # Return in documented format with metadata
                                 coordinates[state.entity_id] = {
                                     "coordinates": coord,
                                     "confidence": 0.85,  # TODO: Calculate actual confidence from triangulation error
                                     "last_updated": datetime.now(timezone.utc).isoformat(),
                                 }
+                                matched = True
                                 break
+                    if not matched:
+                        _LOGGER.debug(f"No person/device_tracker entity matched device {device_id}")
+                else:
+                    _LOGGER.warning(f"Triangulation failed for {device_id} - insufficient data")
             except Exception as err:
-                # Silently skip - triangulation failures are expected during normal operation
-                pass
+                _LOGGER.warning(f"Error triangulating device {device_id}: {err}")
 
+        _LOGGER.debug(f"Returning {len(coordinates)} triangulated entities")
         return coordinates
 
     def _find_distance_sensors(self) -> list[State]:

@@ -157,8 +157,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         rooms_dict = manager.get_rooms_by_floor(floor_id)
         floor_data = manager.get_floor(floor_id)
         
-        _LOGGER.debug(f"get_rooms_by_floor called for floor_id: {floor_id}, found {len(rooms_dict)} rooms")
-        
         # Get all floors to calculate floor range (for beacon filtering)
         all_floors = manager.get_all_floors()
         current_floor_height = floor_data.get(FLOOR_HEIGHT, 0.0) if floor_data else 0.0
@@ -300,6 +298,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         ) -> dict[str, Any]:
             """Handle get_all_moving_entity_coordinates service call."""
             coordinates = await bermuda_provider.get_all_moving_entity_coordinates()
+            _LOGGER.debug(f"Bermuda provider returned {len(coordinates)} moving entities: {list(coordinates.keys())}")
             return {
                 "moving_entities": coordinates,
                 "count": len(coordinates),

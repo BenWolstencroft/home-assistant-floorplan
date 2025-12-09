@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2025-12-09
+
+### Changed
+- **Logging philosophy refined**: Success operations now silent, warnings only for actionable failures
+- Removed debug logs for successful beacon, floor, and room enrichment (previously fired on every service call)
+- Floor enrichment now only logs warning when friendly name NOT found in registry
+- Room enrichment now only logs warning when area name NOT found for rooms without explicit names
+- Beacon enrichment now only logs warning when device name NOT found in device registry
+- Service calls no longer log room counts or floor queries during normal operation
+
+### Added
+- **Debug logging for Bermuda triangulation troubleshooting** (temporary diagnostic logs)
+- Service handler logs moving entity count and entity IDs when coordinates requested
+- Bermuda provider logs sensor discovery, device grouping, triangulation attempts, and entity matching
+- Detailed logging shows why moving entities may not appear (no sensors, triangulation failures, no matching entities)
+
 ## [0.3.1] - 2025-12-09
 
 ### Fixed

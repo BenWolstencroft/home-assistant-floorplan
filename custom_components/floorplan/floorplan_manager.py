@@ -232,7 +232,8 @@ class FloorplanManager:
                         area_name = self._get_area_name_from_registry(area_id)
                         if area_name:
                             enriched_room[ROOM_NAME] = area_name
-                            _LOGGER.debug(f"Enriched room {rid} with name from area registry: {area_name}")
+                        else:
+                            _LOGGER.warning(f"Could not find area name for room {rid} (area: {area_id}) in registry")
                 
                 result[rid] = enriched_room
         
@@ -267,7 +268,8 @@ class FloorplanManager:
             floor_name = self._get_floor_name_from_registry(floor_id)
             if floor_name:
                 enriched_floor["name"] = floor_name
-                _LOGGER.debug(f"Enriched floor {floor_id} with name from registry: {floor_name}")
+            else:
+                _LOGGER.warning(f"Could not find friendly name for floor {floor_id} in registry")
             
             return enriched_floor
         return None
@@ -524,7 +526,8 @@ class FloorplanManager:
                 device_name = self._get_device_name_from_registry(node_id)
                 if device_name:
                     enriched_data["name"] = device_name
-                    _LOGGER.debug(f"Enriched beacon {node_id} with name: {device_name}")
+                else:
+                    _LOGGER.warning(f"Could not find device name for beacon {node_id} in device registry")
                 
                 result[node_id] = enriched_data
         return result
