@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.4] - 2025-12-09
+
+### Fixed
+- **CRITICAL: Bermuda triangulation now works!** Fixed beacon node matching to use friendly names from device registry
+- Triangulation now uses `get_all_beacon_node_data()` which enriches beacon nodes with friendly names
+- Sensor names like `sensor.phone_distance_to_kitchen_bluetooth_proxy` now correctly match beacon nodes stored by MAC address
+- Friendly names from device registry (e.g., "Kitchen Bluetooth Proxy") are normalized and matched against sensor suffixes
+- Debug logs now show friendly names for each beacon node to verify matching
+
+### Technical Details
+- Beacon nodes stored as MAC addresses (e.g., `F8:B3:B7:21:B1:32`) in floorplan.yaml
+- Device registry provides friendly names which get normalized for matching
+- Bermuda sensor naming: `sensor.<device>_distance_to_<normalized_beacon_name>`
+- Matching now works: `kitchen_bluetooth_proxy` ↔ "Kitchen Bluetooth Proxy" ↔ MAC address
+
 ## [0.3.3] - 2025-12-09
 
 ### Fixed

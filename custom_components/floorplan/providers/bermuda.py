@@ -180,12 +180,18 @@ class BermudaLocationProvider(LocationProvider):
         Returns:
             [X, Y, Z] coordinates or None if trilateration fails.
         """
-        beacon_nodes = self.manager.get_beacon_nodes()
+        # Get beacon nodes with friendly names enriched from device registry
+        beacon_nodes = self.manager.get_all_beacon_node_data()
         if not beacon_nodes:
             _LOGGER.debug("No beacon nodes configured")
             return None
 
         _LOGGER.debug(f"Available beacon nodes: {list(beacon_nodes.keys())}")
+        # Log friendly names for debugging
+        for node_id, data in beacon_nodes.items():
+            friendly_name = data.get("name", "N/A") if isinstance(data, dict) else "N/A"
+            _LOGGER.debug(f"  {node_id}: friendly_name='{friendly_name}'")
+        
         _LOGGER.debug(f"Processing {len(sensors)} sensors")
 
         # Build distance measurements and beacon node positions
