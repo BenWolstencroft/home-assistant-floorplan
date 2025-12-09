@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.7] - 2025-12-09
+
+### Changed
+- **Replaced gradient descent with proper Gauss-Newton algorithm** for trilateration
+- Improved convergence and stability with correct gradient computation
+- Step size limiting (5m max) prevents divergence
+- Stricter bounds checking (100m instead of 1000m) catches unreasonable results earlier
+- Better Z-axis clamping within beacon node range ± margins
+
+### Added
+- **Triangle inequality validation** - Checks if measured distances are geometrically possible
+- Warns when distance measurements violate triangle inequality constraints
+- Example: If beacons are 10m apart, measuring 2m and 3m to them is impossible (2+3 < 10)
+- **Detailed iteration logging** - Shows position and errors during convergence (first 5 iterations, then every 10th)
+- Logs beacon positions for cross-reference with measured distances
+- Helps identify bad sensor readings or incorrect beacon positions in floorplan.yaml
+
+### Fixed
+- Final validation now properly rejects results outside 100m bounds before returning
+- Prevents return of diverged positions that exceed reasonable limits
+
 ## [0.3.6] - 2025-12-09
 
 ### Added

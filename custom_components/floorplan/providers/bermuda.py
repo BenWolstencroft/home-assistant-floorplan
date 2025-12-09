@@ -379,12 +379,32 @@ class BermudaLocationProvider(LocationProvider):
         y = sum(n[1] for n in nodes) / len(nodes)
         z = sum(n[2] for n in nodes) / len(nodes)
 
-        # Iterative least squares refinement
-        learning_rate = 0.5
+        # Iterative Gauss-Newton refinement
         _LOGGER.debug(f"Trilateration starting from centroid: [{x:.2f}, {y:.2f}, {z:.2f}]")
+        _LOGGER.debug(f"Beacon positions: {nodes}")
         _LOGGER.debug(f"Measured distances: {measured_distances}")
         
-        for iteration in range(100):
+        # Validate measured distances against beacon positions
+        for i, node in enumerate(nodes):
+            for j in range(i + 1, len(nodes)):
+                beacon_distance = math.sqrt(
+                    sum((nodes[i][k] - nodes[j][k]) ** 2 for k in range(3))
+                )
+                measured_sum = measured_distances[i] + measured_distances[j]
+                measured_diff = abs(measured_distances[i] - measured_distances[j])
+                
+                # Triangle inequality check: |d1 - d2| <= beacon_distance <= d1 + d2
+                if beacon_distance > measured_sum or beacon_distance < measured_diff:
+                    _LOGGER.warning(
+                        f"Triangle inequality violated: beacons {i},{j} are {beacon_distance:.2f}m apart, "
+                        f"but measured distances {measured_distances[i]:.2f}m and {measured_distances[j]:.2f}m "
+                        f"imply range [{measured_diff:.2f}m, {measured_sum:.2f}m]"
+                    )
+        
+        max_iterations = 50
+        convergence_threshold = 0.1  # 10cm
+        
+        for iteration in range(max_iterations):
             # Calculate current distances from estimated position
             calculated_distances = [
                 math.sqrt((n[0] - x) ** 2 + (n[1] - y) ** 2 + (n[2] - z) ** 2)
@@ -397,44 +417,62 @@ class BermudaLocationProvider(LocationProvider):
                 for i in range(len(nodes))
             ]
             rms_error = math.sqrt(sum(e ** 2 for e in errors) / len(errors))
-
-            # Check for numerical instability
-            if abs(x) > 1000 or abs(y) > 1000 or abs(z) > 1000:
-                _LOGGER.warning(f"Trilateration diverging at iteration {iteration}: pos=[{x:.2f}, {y:.2f}, {z:.2f}], rms_error={rms_error:.2f}")
-                raise ValueError("Trilateration diverged - numerical instability")
+            
+            if iteration < 5 or iteration % 10 == 0:
+                _LOGGER.debug(f"Iteration {iteration}: pos=[{x:.2f}, {y:.2f}, {z:.2f}], rms_error={rms_error:.2f}m, errors={[f'{e:.2f}' for e in errors]}")
 
             # Check convergence
-            if rms_error < 0.1:  # Converged within 10cm
+            if rms_error < convergence_threshold:
                 _LOGGER.debug(f"Converged at iteration {iteration}: pos=[{x:.2f}, {y:.2f}, {z:.2f}], rms_error={rms_error:.2f}m")
                 break
 
-            # Update position based on gradients
+            # Build Jacobian matrix and compute update using Gauss-Newton
+            # J[i] = [-2(x_i - x), -2(y_i - y), -2(z_i - z)] / (2 * d_calc_i)
+            #      = [-(x_i - x)/d_calc_i, -(y_i - y)/d_calc_i, -(z_i - z)/d_calc_i]
             dx = 0
             dy = 0
             dz = 0
-
+            
             for i, node in enumerate(nodes):
                 if calculated_distances[i] > 0.001:  # Avoid division by zero
-                    error_factor = errors[i] / calculated_distances[i]
-                    dx += (node[0] - x) * error_factor
-                    dy += (node[1] - y) * error_factor
-                    dz += (node[2] - z) * error_factor
+                    # Gradient of distance function
+                    grad_x = (x - node[0]) / calculated_distances[i]
+                    grad_y = (y - node[1]) / calculated_distances[i]
+                    grad_z = (z - node[2]) / calculated_distances[i]
+                    
+                    # Update based on error (simplified Gauss-Newton)
+                    dx -= errors[i] * grad_x
+                    dy -= errors[i] * grad_y
+                    dz -= errors[i] * grad_z
 
-            # Clamp gradients to prevent explosion
-            max_gradient = 10.0
-            dx = max(min(dx, max_gradient), -max_gradient)
-            dy = max(min(dy, max_gradient), -max_gradient)
-            dz = max(min(dz, max_gradient), -max_gradient)
+            # Normalize update and apply with damping
+            update_magnitude = math.sqrt(dx**2 + dy**2 + dz**2)
+            if update_magnitude > 5.0:  # Limit step size to 5 meters
+                scale = 5.0 / update_magnitude
+                dx *= scale
+                dy *= scale
+                dz *= scale
+            
+            # Apply update
+            x += dx
+            y += dy
+            z += dz
+            
+            # Sanity check for divergence
+            if abs(x) > 100 or abs(y) > 100 or abs(z) > 100:
+                _LOGGER.warning(f"Trilateration diverging at iteration {iteration}: pos=[{x:.2f}, {y:.2f}, {z:.2f}], rms_error={rms_error:.2f}m")
+                raise ValueError("Trilateration diverged - position outside reasonable bounds")
 
-            # Apply gradient update
-            x += learning_rate * dx
-            y += learning_rate * dy
-            z += learning_rate * dz
+        # Final sanity check
+        if abs(x) > 100 or abs(y) > 100 or abs(z) > 100:
+            raise ValueError(f"Trilateration result unreasonable: [{x:.2f}, {y:.2f}, {z:.2f}]")
 
         # Clamp Z to beacon node floor (shouldn't go below lowest beacon)
         min_z = min(n[2] for n in nodes)
-        z = max(z, min_z - 0.5)  # Allow 50cm below lowest beacon
+        max_z = max(n[2] for n in nodes)
+        z = max(min(z, max_z + 5.0), min_z - 0.5)  # Within beacon Z range + margin
 
+        _LOGGER.debug(f"Final position: [{x:.2f}, {y:.2f}, {z:.2f}]")
         return [x, y, z]
 
     def _entity_matches_device(self, entity_id: str, device_id: str) -> bool:
