@@ -352,6 +352,9 @@ class BermudaLocationProvider(LocationProvider):
 
         # Iterative least squares refinement
         learning_rate = 0.5
+        _LOGGER.debug(f"Trilateration starting from centroid: [{x:.2f}, {y:.2f}, {z:.2f}]")
+        _LOGGER.debug(f"Measured distances: {measured_distances}")
+        
         for iteration in range(100):
             # Calculate current distances from estimated position
             calculated_distances = [
@@ -366,8 +369,14 @@ class BermudaLocationProvider(LocationProvider):
             ]
             rms_error = math.sqrt(sum(e ** 2 for e in errors) / len(errors))
 
+            # Check for numerical instability
+            if abs(x) > 1000 or abs(y) > 1000 or abs(z) > 1000:
+                _LOGGER.warning(f"Trilateration diverging at iteration {iteration}: pos=[{x:.2f}, {y:.2f}, {z:.2f}], rms_error={rms_error:.2f}")
+                raise ValueError("Trilateration diverged - numerical instability")
+
             # Check convergence
             if rms_error < 0.1:  # Converged within 10cm
+                _LOGGER.debug(f"Converged at iteration {iteration}: pos=[{x:.2f}, {y:.2f}, {z:.2f}], rms_error={rms_error:.2f}m")
                 break
 
             # Update position based on gradients
@@ -381,6 +390,12 @@ class BermudaLocationProvider(LocationProvider):
                     dx += (node[0] - x) * error_factor
                     dy += (node[1] - y) * error_factor
                     dz += (node[2] - z) * error_factor
+
+            # Clamp gradients to prevent explosion
+            max_gradient = 10.0
+            dx = max(min(dx, max_gradient), -max_gradient)
+            dy = max(min(dy, max_gradient), -max_gradient)
+            dz = max(min(dz, max_gradient), -max_gradient)
 
             # Apply gradient update
             x += learning_rate * dx
