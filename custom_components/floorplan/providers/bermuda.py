@@ -53,11 +53,9 @@ class BermudaLocationProvider(LocationProvider):
 
         # Find all Bermuda distance sensors
         distance_sensors = self._find_distance_sensors()
-        _LOGGER.debug("Found %d Bermuda distance sensors", len(distance_sensors))
         
         # Group sensors by device (extract device prefix from sensor name)
         devices = self._group_sensors_by_device(distance_sensors)
-        _LOGGER.debug("Grouped into %d devices: %s", len(devices), list(devices.keys()))
 
         # Triangulate each device
         for device_id, sensors in devices.items():
@@ -78,7 +76,8 @@ class BermudaLocationProvider(LocationProvider):
                                 }
                                 break
             except Exception as err:
-                _LOGGER.warning("Failed to triangulate device %s: %s", device_id, err)
+                # Silently skip - triangulation failures are expected during normal operation
+                pass
 
         return coordinates
 
@@ -189,11 +188,7 @@ class BermudaLocationProvider(LocationProvider):
             # Find matching beacon node
             matching_node = self._find_beacon_node_by_name(node_name, beacon_nodes)
             if not matching_node:
-                _LOGGER.debug(
-                    "Could not find beacon node matching '%s' for sensor %s",
-                    node_name,
-                    sensor.entity_id,
-                )
+                # Silently skip - this is common when sensors exist for beacons not in config
                 continue
 
             try:
@@ -205,12 +200,7 @@ class BermudaLocationProvider(LocationProvider):
                 pass
 
         if len(distances) < 3:
-            _LOGGER.warning(
-                "Not enough valid distance measurements for trilateration "
-                "(have %d, need 3+). Sensors: %s",
-                len(distances),
-                [s.entity_id for s in sensors],
-            )
+            # Silently return None - insufficient data is expected when device is out of range
             return None
 
         # Perform 3D trilateration
@@ -218,7 +208,9 @@ class BermudaLocationProvider(LocationProvider):
             result = self._trilaterate_3d(node_positions, distances)
             return result
         except Exception as err:
-            _LOGGER.error("Trilateration failed: %s", err)
+            # Only log actual errors, not expected calculation issues
+            if "singular matrix" not in str(err).lower():
+                _LOGGER.error("Trilateration failed: %s", err)
             return None
 
     def _extract_node_name_from_sensor(self, entity_id: str) -> str | None:
@@ -243,36 +235,56 @@ class BermudaLocationProvider(LocationProvider):
         return None
 
     def _find_beacon_node_by_name(
-        self, node_name: str, beacon_nodes: dict[str, list[float]]
+        self, node_name: str, beacon_nodes: dict[str, Any]
     ) -> tuple[str, list[float]] | None:
         """Find a beacon node by name or name pattern.
         
         Matches node names flexibly since Bermuda sensor names might not
-        exactly match beacon node IDs.
+        exactly match beacon node IDs. Also matches against friendly names
+        by normalizing them (lowercase with underscores).
         
         Args:
             node_name: Name extracted from sensor (e.g., 'lounge_bluetooth_proxy')
-            beacon_nodes: Dictionary of node_id -> coordinates
+            beacon_nodes: Dictionary of node_id -> {coordinates, name} or [coordinates]
             
         Returns:
             Tuple of (node_id, coordinates) or None if no match found.
         """
+        def normalize_name(name: str) -> str:
+            """Normalize name to lowercase with underscores."""
+            return name.lower().replace(" ", "_").replace("-", "_")
+        
         # Normalize for comparison
-        node_name_lower = node_name.lower()
+        node_name_normalized = normalize_name(node_name)
 
-        # Exact match first
-        for node_id, coords in beacon_nodes.items():
-            if node_id.lower() == node_name_lower:
+        # Check each beacon node
+        for node_id, data in beacon_nodes.items():
+            # Extract coordinates based on format (new dict format or old list format)
+            if isinstance(data, dict):
+                coords = data.get("coordinates", [])
+                friendly_name = data.get("name", "")
+            else:
+                coords = data
+                friendly_name = ""
+            
+            # Match 1: Exact match on node ID
+            if normalize_name(node_id) == node_name_normalized:
                 return (node_id, coords)
-
-        # Partial match - node name contains beacon node ID
-        for node_id, coords in beacon_nodes.items():
-            if node_id.lower() in node_name_lower:
+            
+            # Match 2: Friendly name normalized matches sensor name
+            if friendly_name and normalize_name(friendly_name) == node_name_normalized:
                 return (node_id, coords)
-
-        # Reverse partial match - beacon node ID contains sensor name
-        for node_id, coords in beacon_nodes.items():
-            if node_name_lower in node_id.lower():
+            
+            # Match 3: Partial match - node name contains beacon node ID
+            if normalize_name(node_id) in node_name_normalized:
+                return (node_id, coords)
+            
+            # Match 4: Reverse partial match - beacon node ID contains sensor name
+            if node_name_normalized in normalize_name(node_id):
+                return (node_id, coords)
+            
+            # Match 5: Friendly name partial match
+            if friendly_name and normalize_name(friendly_name) in node_name_normalized:
                 return (node_id, coords)
 
         return None

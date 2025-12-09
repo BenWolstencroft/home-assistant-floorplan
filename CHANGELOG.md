@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2025-12-09
+
+### Fixed
+- **Bermuda beacon matching** now correctly matches against device friendly names by normalizing them (lowercase with underscores)
+- Bermuda sensors like `sensor.phone_distance_to_kitchen_bluetooth_proxy` now match beacons with friendly name "Kitchen Bluetooth Proxy"
+- Added name normalization helper function for flexible matching
+- Supports both new dict format `{coordinates, name}` and legacy list format for backward compatibility
+
+### Changed
+- Removed excessive debug/warning logging from Bermuda provider that was flooding logs (200+ messages)
+- Silent handling of expected conditions: missing beacon matches, insufficient measurements, out-of-range devices
+- Only critical trilateration errors are now logged (excluding common singular matrix errors)
+- Dramatically reduced log verbosity for normal operation
+
 ## [0.3.0] - 2025-12-08
 
 ### Changed
